@@ -688,6 +688,8 @@ int AVContext::parse_ts_psi()
             es = new ES_AAC(pes_pid);
           else if (stream_type == STREAM_TYPE_AUDIO_AC3)
             es = new ES_AC3(pes_pid);
+          else if (stream_type == STREAM_TYPE_AUDIO_EAC3)
+            es = new ES_AC3(pes_pid);
           else if (stream_type == STREAM_TYPE_DVB_SUBTITLE)
             es = new ES_Subtitle(pes_pid);
           else if (stream_type == STREAM_TYPE_DVB_TELETEXT)
@@ -754,9 +756,11 @@ ElementaryStream::STREAM_INFO AVContext::parse_pes_descriptor(const unsigned cha
         *st = STREAM_TYPE_DVB_TELETEXT;
         break;
       case 0x6a: /* DVB AC3 */
-      case 0x7a: /* DVB enhanced AC3 */
       case 0x81: /* AC3 audio stream */
         *st = STREAM_TYPE_AUDIO_AC3;
+        break;
+      case 0x7a: /* DVB enhanced AC3 */
+        *st = STREAM_TYPE_AUDIO_EAC3;
         break;
       case 0x7b: /* DVB DTS */
         *st = STREAM_TYPE_AUDIO_DTS;

@@ -142,6 +142,8 @@ const char* ElementaryStream::GetStreamCodecName(STREAM_TYPE stream_type)
       return "lpcm";
     case STREAM_TYPE_AUDIO_AC3:
       return "ac3";
+    case STREAM_TYPE_AUDIO_EAC3:
+      return "eac3";
     case STREAM_TYPE_AUDIO_DTS:
       return "dts";
     case STREAM_TYPE_DVB_TELETEXT:
