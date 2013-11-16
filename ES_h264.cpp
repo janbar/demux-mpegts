@@ -66,6 +66,7 @@ ES_h264::~ES_h264()
 
 void ES_h264::Parse(STREAM_PKT* pkt)
 {
+  int frame_ptr = es_consumed;
   int p = es_parsed;
   uint32_t startcode = m_StartCode;
   bool frameComplete = false;
@@ -98,8 +99,8 @@ void ES_h264::Parse(STREAM_PKT* pkt)
       }
       bool streamChange = SetVideoInformation(m_FpsScale, RESCALE_TIME_BASE, m_Height, m_Width, DAR);
       pkt->pid            = pid;
-      pkt->size           = es_consumed;
-      pkt->data           = es_buf;
+      pkt->size           = es_consumed - frame_ptr;
+      pkt->data           = &es_buf[frame_ptr];
       pkt->dts            = m_DTS;
       pkt->pts            = m_PTS;
       pkt->duration       = c_dts - p_dts;

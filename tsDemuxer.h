@@ -75,6 +75,7 @@ public:
   // TS parser
   int TSResync();
   uint64_t GoNext();
+  uint64_t Shift();
   void GoPosition(uint64_t pos);
   uint64_t GetPosition() const;
   int ProcessTSPacket();

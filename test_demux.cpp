@@ -170,7 +170,10 @@ int Demux::Do()
     if (ret < 0)
       printf(LOGTAG"%s: error %d\n", __FUNCTION__, ret);
 
-    m_AVContext->GoNext();
+    if (ret == AVCONTEXT_TS_ERROR)
+      m_AVContext->Shift();
+    else
+      m_AVContext->GoNext();
   }
 
   printf(LOGTAG"%s: stopped with status %d\n", __FUNCTION__, ret);

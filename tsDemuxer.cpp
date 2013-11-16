@@ -268,6 +268,13 @@ uint64_t AVContext::GoNext()
   return av_pos;
 }
 
+uint64_t AVContext::Shift()
+{
+  av_pos++;
+  Reset();
+  return av_pos;
+}
+
 void AVContext::GoPosition(uint64_t pos)
 {
   av_pos = pos;
@@ -495,7 +502,7 @@ int AVContext::parse_ts_psi()
   size_t len;
 
   if (!this->has_payload || !this->payload || !this->payload_len || !this->packet)
-    return AVCONTEXT_TS_ERROR;
+    return AVCONTEXT_CONTINUE;
 
   if (this->payload_unit_start)
   {
@@ -802,7 +809,7 @@ ElementaryStream::STREAM_INFO AVContext::parse_pes_descriptor(const unsigned cha
 int AVContext::parse_ts_pes()
 {
   if (!this->has_payload || !this->payload || !this->payload_len || !this->packet)
-    return AVCONTEXT_TS_ERROR;
+    return AVCONTEXT_CONTINUE;
 
   if (!this->packet->stream)
     return AVCONTEXT_CONTINUE;
