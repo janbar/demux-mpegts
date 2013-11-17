@@ -44,6 +44,7 @@ AVContext::AVContext(TSDemuxer* const demux, uint64_t pos, uint16_t channel)
   , packet(NULL)
 {
   m_demux = demux;
+  memset(av_buf, 0, sizeof(av_buf));
 };
 
 void AVContext::Reset(void)

@@ -25,10 +25,6 @@
 
 class ES_Teletext : public ElementaryStream
 {
-private:
-  int64_t     m_lastDTS;
-  int64_t     m_lastPTS;
-
 public:
   ES_Teletext(uint16_t pid);
   virtual ~ES_Teletext();

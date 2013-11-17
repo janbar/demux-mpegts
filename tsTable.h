@@ -42,6 +42,7 @@ public:
   , len(0)
   , offset(0)
   {
+    memset(buf, 0, sizeof(buf));
   }
 
   void Reset(void)

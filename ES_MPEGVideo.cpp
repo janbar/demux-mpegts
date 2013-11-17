@@ -60,7 +60,15 @@ ES_MPEG2Video::ES_MPEG2Video(uint16_t pid)
   m_vbvSize           = 0;
   m_Height            = 0;
   m_Width             = 0;
-  m_Dar               = 0.0;
+  m_Dar               = 0.0f;
+  m_DTS               = 0;
+  m_PTS               = 0;
+  m_AuDTS             = 0;
+  m_AuPTS             = 0;
+  m_AuPrevDTS         = 0;
+  m_TemporalReference = 0;
+  m_TrLastTime        = 0;
+  m_PicNumber         = 0;
   es_alloc_init       = 80000;
   Reset();
 }

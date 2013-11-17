@@ -42,6 +42,7 @@ ES_AAC::ES_AAC(uint16_t pes_pid)
   m_SampleRate                  = 0;
   m_Channels                    = 0;
   m_BitRate                     = 0;
+  m_AudioMuxVersion_A           = 0;
   es_alloc_init                 = 1920*2;
   Reset();
 }
@@ -198,19 +199,12 @@ void ES_AAC::ReadStreamMuxConfig(cBitstream *bs)
 
   if (bs->readBits(1))
   {                   // other data?
-    if (AudioMuxVersion == 1)
+    int esc;
+    do
     {
-      LATMGetValue(bs);              // other_data_bits
-    }
-    else
-    {
-      int esc;
-      do
-      {
-        esc = bs->readBits(1);
-        bs->skipBits(8);
-      } while (esc);
-    }
+      esc = bs->readBits(1);
+      bs->skipBits(8);
+    } while (esc);
   }
 
   if (bs->readBits(1))                   // crc present?
