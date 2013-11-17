@@ -320,8 +320,8 @@ int AVContext::ProcessTSPacket()
 
   uint16_t header = av_rb16(this->av_buf + 1);
   this->pid = header & 0x1fff;
-  this->transport_error = header & 0x8000;
-  this->payload_unit_start = header & 0x4000;
+  this->transport_error = (header & 0x8000) != 0;
+  this->payload_unit_start = (header & 0x4000) != 0;
   // Cleaning context
   this->discontinuity = false;
   this->has_payload = false;
@@ -335,10 +335,10 @@ int AVContext::ProcessTSPacket()
     return AVCONTEXT_CONTINUE;
 
   uint8_t flags = av_rb8(this->av_buf + 3);
-  bool has_payload = flags & 0x10;
+  bool has_payload = (flags & 0x10) != 0;
   bool is_discontinuity = false;
   uint8_t continuity_counter = flags & 0x0f;
-  bool has_adaptation = flags & 0x20;
+  bool has_adaptation = (flags & 0x20) != 0;
   size_t n = 0;
   if (has_adaptation)
   {
@@ -348,7 +348,7 @@ int AVContext::ProcessTSPacket()
     n = len + 1;
     if (len > 0)
     {
-      is_discontinuity = av_rb8(this->av_buf + 5) & 0x80;
+      is_discontinuity = (av_rb8(this->av_buf + 5) & 0x80) != 0;
     }
   }
   if (has_payload)
@@ -518,7 +518,7 @@ int AVContext::parse_ts_psi()
 
     // table length
     len = (size_t)av_rb16(this->payload + 2);
-    if (len & 0x3000 != 0x3000)
+    if ((len & 0x3000) != 0x3000)
       return AVCONTEXT_TS_ERROR;
 
     len &= 0x0fff;
@@ -594,7 +594,7 @@ int AVContext::parse_ts_psi()
         uint16_t channel = av_rb16(psi);
         uint16_t pmt_pid = av_rb16(psi + 2);
 
-        if (pmt_pid & 0xe000 != 0xe000)
+        if ((pmt_pid & 0xe000) != 0xe000)
           return AVCONTEXT_TS_ERROR;
 
         pmt_pid &= 0x1fff;
@@ -648,7 +648,7 @@ int AVContext::parse_ts_psi()
         uint8_t pes_type = av_rb8(psi);
         uint16_t pes_pid = av_rb16(psi + 1);
 
-        if (pes_pid & 0xe000 != 0xe000)
+        if ((pes_pid & 0xe000) != 0xe000)
           return AVCONTEXT_TS_ERROR;
 
         pes_pid &= 0x1fff;

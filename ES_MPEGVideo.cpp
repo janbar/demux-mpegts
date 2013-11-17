@@ -222,16 +222,16 @@ bool ES_MPEG2Video::Parse_MPEG2Video_SeqStart(uint8_t *buf)
   switch(aspect)
   {
     case 1:
-      m_Dar = 1.0;
+      m_Dar = 1.0f;
       break;
     case 2:
-      m_Dar = 4.0/3.0;
+      m_Dar = 4.0f/3.0f;
       break;
     case 3:
-      m_Dar = 16.0/9.0;
+      m_Dar = 16.0f/9.0f;
       break;
     case 4:
-      m_Dar = 2.21;
+      m_Dar = 2.21f;
       break;
     default:
       demux_dbg(DEMUX_DBG_ERROR, "invalid / forbidden DAR in sequence header !\n");

@@ -29,6 +29,10 @@
 #define DEMUX_DBG_PARSE  4
 #define DEMUX_DBG_ALL    6
 
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
+
 extern "C" {
 extern void demux_dbg_level(int l);
 extern void demux_dbg_all(void);

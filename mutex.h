@@ -22,6 +22,8 @@
 #define MUTEX_H
 
 #if defined(_MSC_VER)
+#include <windows.h>
+
 #define pthread_mutex_init(a, b) InitializeCriticalSection(a)
 #define pthread_mutex_destroy(a) DeleteCriticalSection(a)
 #define pthread_mutex_lock(a) EnterCriticalSection(a)
