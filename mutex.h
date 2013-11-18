@@ -71,11 +71,13 @@ public:
   }
 
 private:
+  Mutex(const Mutex&);
   inline Mutex& operator=(const Mutex& c)
   {
     *this = c;
     return *this;
   }
+
   pthread_mutex_t m_mutex;
 };
 
@@ -98,18 +100,19 @@ public:
     m_mutex.Unlock();
   }
 
-
   inline void Lock(void)
   {
     m_mutex.Lock();
   }
 
 private:
+  LockGuard(const LockGuard&);
   inline LockGuard& operator=(const LockGuard& c)
   {
     *this = c;
     return *this;
   }
+
   Mutex& m_mutex;
 };
 
