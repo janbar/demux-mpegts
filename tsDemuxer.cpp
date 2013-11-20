@@ -169,7 +169,6 @@ void AVContext::ResetPackets()
   for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); it++)
   {
     it->second.Reset();
-    it->second.wait_unit_start = true;
   }
 }
 
@@ -398,8 +397,6 @@ int AVContext::ProcessTSPacket()
         if (!this->payload_unit_start)
         {
           it->second.Reset();
-          it->second.wait_unit_start = true;
-          it->second.continuity = continuity_counter;
           demux_dbg(DEMUX_DBG_WARN, "PID %.4x discontinuity detected: found %u, expected %u\n", this->pid, continuity_counter, expected_cc);
           return AVCONTEXT_DISCONTINUITY;
         }
