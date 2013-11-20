@@ -47,74 +47,77 @@ inline pthread_mutexattr_t *GetRecursiveMutexAttribute(void)
 
 #endif /* _MSC_VER */
 
-class Mutex
+namespace PLATFORM
 {
-public:
-  inline Mutex(void)
+  class CMutex
   {
-    pthread_mutex_init(&m_mutex, GetRecursiveMutexAttribute());
-  }
+  public:
+    inline CMutex(void)
+    {
+      pthread_mutex_init(&m_mutex, GetRecursiveMutexAttribute());
+    }
 
-  inline ~Mutex(void)
+    inline ~CMutex(void)
+    {
+      pthread_mutex_destroy(&m_mutex);
+    }
+
+    inline void Lock(void)
+    {
+      pthread_mutex_lock(&m_mutex);
+    }
+
+    inline void Unlock(void)
+    {
+      pthread_mutex_unlock(&m_mutex);
+    }
+
+  private:
+    CMutex(const CMutex&);
+    inline CMutex& operator=(const CMutex& c)
+    {
+      *this = c;
+      return *this;
+    }
+
+    pthread_mutex_t m_mutex;
+  };
+
+  class CLockObject
   {
-    pthread_mutex_destroy(&m_mutex);
-  }
+  public:
+    inline CLockObject(CMutex& mutex) :
+      m_mutex(mutex)
+    {
+      m_mutex.Lock();
+    }
 
-  inline void Lock(void)
-  {
-    pthread_mutex_lock(&m_mutex);
-  }
+    inline ~CLockObject(void)
+    {
+      Unlock();
+    }
 
-  inline void Unlock(void)
-  {
-    pthread_mutex_unlock(&m_mutex);
-  }
+    inline void Unlock(void)
+    {
+      m_mutex.Unlock();
+    }
 
-private:
-  Mutex(const Mutex&);
-  inline Mutex& operator=(const Mutex& c)
-  {
-    *this = c;
-    return *this;
-  }
+    inline void Lock(void)
+    {
+      m_mutex.Lock();
+    }
 
-  pthread_mutex_t m_mutex;
-};
+  private:
+    CLockObject(const CLockObject&);
+    inline CLockObject& operator=(const CLockObject& c)
+    {
+      *this = c;
+      return *this;
+    }
 
-class LockGuard
-{
-public:
-  inline LockGuard(Mutex& mutex) :
-    m_mutex(mutex)
-  {
-    m_mutex.Lock();
-  }
-
-  inline ~LockGuard(void)
-  {
-    Unlock();
-  }
-
-  inline void Unlock(void)
-  {
-    m_mutex.Unlock();
-  }
-
-  inline void Lock(void)
-  {
-    m_mutex.Lock();
-  }
-
-private:
-  LockGuard(const LockGuard&);
-  inline LockGuard& operator=(const LockGuard& c)
-  {
-    *this = c;
-    return *this;
-  }
-
-  Mutex& m_mutex;
-};
+    CMutex& m_mutex;
+  };
+}
 
 #endif /* MUTEX_H */
 

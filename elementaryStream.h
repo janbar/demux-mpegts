@@ -61,8 +61,8 @@ public:
   uint64_t p_dts;               ///< previous MPEG stream DTS (decode time for video)
   uint64_t p_pts;               ///< previous MPEG stream PTS (presentation time for audio and video)
 
-  bool is_setup;                ///< true if stream info is completed else it requires parsing of iframe
-  
+  bool has_stream_info;         ///< true if stream info is completed else it requires parsing of iframe
+
   struct STREAM_INFO
   {
     char                  language[4];
@@ -105,7 +105,7 @@ protected:
   size_t es_alloc;              ///< Allocated size of memory for buffer
   size_t es_len;                ///< Size of data in buffer
   size_t es_consumed;           ///< Consumed payload. Will be erased on next append
-  size_t es_pts_pointer;        ///< Position in buffer where current PTS becomes applicable 
+  size_t es_pts_pointer;        ///< Position in buffer where current PTS becomes applicable
   size_t es_parsed;             ///< Parser: Last processed position in buffer
   bool   es_found_frame;        ///< Parser: Found frame
 };

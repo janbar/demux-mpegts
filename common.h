@@ -32,9 +32,9 @@ extern "C" {
 #include "debug.h"
 }
 
-#define ES_MIN_BUFFER_SIZE      131072
+#define ES_INIT_BUFFER_SIZE     64000
 #define ES_MAX_BUFFER_SIZE      1048576
-
+#define MAX_RESYNC_SIZE         65536
 #define PTS_MASK                0x1ffffffffLL
 #define PTS_UNSET               0x1ffffffffLL
 #define PTS_TIME_BASE           90000LL

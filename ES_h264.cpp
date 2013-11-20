@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "ES_h264.h"
 #include "bitstream.h"

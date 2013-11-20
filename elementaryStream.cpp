@@ -27,8 +27,8 @@ ElementaryStream::ElementaryStream(uint16_t pes_pid)
   , c_pts(PTS_UNSET)
   , p_dts(PTS_UNSET)
   , p_pts(PTS_UNSET)
-  , is_setup(false)
-  , es_alloc_init(ES_MIN_BUFFER_SIZE)
+  , has_stream_info(false)
+  , es_alloc_init(ES_INIT_BUFFER_SIZE)
   , es_buf(NULL)
   , es_alloc(0)
   , es_len(0)
@@ -67,7 +67,7 @@ int ElementaryStream::Append(const unsigned char* buf, size_t len, bool new_pts)
   if (new_pts)
     es_pts_pointer = es_len;
 
-  if (es_consumed)
+  if (es_buf && es_consumed)
   {
     if (es_consumed < es_len)
     {
@@ -78,7 +78,7 @@ int ElementaryStream::Append(const unsigned char* buf, size_t len, bool new_pts)
         es_pts_pointer -= es_consumed;
       else
         es_pts_pointer = 0;
-      
+
       es_consumed = 0;
     }
     else
@@ -254,7 +254,7 @@ bool ElementaryStream::SetVideoInformation(int FpsScale, int FpsRate, int Height
   stream_info.width           = Width;
   stream_info.aspect          = Aspect;
 
-  is_setup = true;
+  has_stream_info = true;
   return ret;
 }
 
@@ -274,6 +274,6 @@ bool ElementaryStream::SetAudioInformation(int Channels, int SampleRate, int Bit
   stream_info.bit_rate          = BitRate;
   stream_info.bits_Per_sample   = BitsPerSample;
 
-  is_setup = true;
+  has_stream_info = true;
   return ret;
 }

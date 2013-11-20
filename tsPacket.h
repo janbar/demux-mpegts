@@ -53,7 +53,7 @@ public:
     if (stream)
       delete stream;
   }
-  
+
   void Reset(void)
   {
     packet_table.Reset();

@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "ES_MPEGVideo.h"
 #include "bitstream.h"

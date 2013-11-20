@@ -161,7 +161,7 @@ int Demux::Do()
         std::vector<ElementaryStream*> streams = m_AVContext->GetStreams();
         for (std::vector<ElementaryStream*>::const_iterator it = streams.begin(); it != streams.end(); it++)
         {
-          if ((*it)->is_setup)
+          if ((*it)->has_stream_info)
             show_stream_info((*it)->pid);
         }
       }

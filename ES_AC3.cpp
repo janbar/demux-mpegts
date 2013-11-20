@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 #include <algorithm>
 
 #include "ES_AC3.h"

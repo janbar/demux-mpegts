@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "ES_AAC.h"
 #include "bitstream.h"

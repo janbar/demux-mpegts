@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "ES_Subtitle.h"
 
@@ -27,7 +26,7 @@ ES_Subtitle::ES_Subtitle(uint16_t pid)
  : ElementaryStream(pid)
 {
   es_alloc_init = 4000;
-  is_setup = true; // doesn't provide stream info
+  has_stream_info = true; // doesn't provide stream info
 }
 
 ES_Subtitle::~ES_Subtitle()

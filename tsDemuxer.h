@@ -34,7 +34,7 @@
 #define FLUTS_DVB_ASI_TS_PACKETSIZE 204
 #define FLUTS_ATSC_TS_PACKETSIZE    208
 
-#define AV_CONTEXT_PACKETSIZE       256
+#define AV_CONTEXT_PACKETSIZE       208
 
 class TSDemuxer
 {
@@ -82,6 +82,9 @@ public:
   int ProcessTSPayload();
 
 private:
+  AVContext(const AVContext&);
+  AVContext& operator=(const AVContext&);
+
   static STREAM_TYPE get_stream_type(uint8_t pes_type);
   static uint8_t av_rb8(const unsigned char* p);
   static uint16_t av_rb16(const unsigned char* p);
@@ -94,7 +97,7 @@ private:
   int parse_ts_pes();
 
   // Critical section
-  mutable Mutex mutex;
+  mutable PLATFORM::CMutex mutex;
 
   // AV stream owner
   TSDemuxer* m_demux;
