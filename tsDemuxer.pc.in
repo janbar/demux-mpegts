@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_LIBDIR@
+includedir=@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: tsDemuxer
+Description: C++ MPEG-TS demuxer
+Version: @GENERIC_LIB_VERSION@
+Libs: -L${libdir} -ltsDemuxer
+Cflags: -I${includedir}

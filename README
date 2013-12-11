@@ -1,17 +1,21 @@
 demux-mpegts
 ============
 
+Configure:
+
+  run `cmake .`
+
 Building:
 
   run `make`
 
 Testing:
 
-  Go to folder `build` then run `test_demux`
+  run `test`
 
 Usage:
 
-  test_demux [options] [ts filename]
+  test [options] [ts filename]
   
 Options:
 
