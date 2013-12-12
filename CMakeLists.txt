@@ -37,6 +37,10 @@ add_library(tsDemuxerStatic STATIC
 	src/tsDemuxer.cpp src/debug.cpp src/elementaryStream.cpp src/bitstream.cpp
 	src/ES_AC3.cpp src/ES_MPEGAudio.cpp src/ES_Subtitle.cpp src/ES_AAC.cpp
 	src/ES_h264.cpp src/ES_MPEGVideo.cpp src/ES_Teletext.cpp
+	src/bitstream.h src/common.h src/debug.h src/elementaryStream.h src/mutex.h
+	src/tsPacket.h src/tsTable.h src/tsDemuxer.h
+	src/ES_AAC.h src/ES_AC3.h src/ES_h264.h src/ES_MPEGAudio.h src/ES_MPEGVideo.h
+	src/ES_Subtitle.h src/ES_Teletext.h
 	)
 set_target_properties(tsDemuxerStatic PROPERTIES OUTPUT_NAME tsDemuxer)
 
@@ -45,6 +49,10 @@ if(BUILD_SHARED_LIBS)
 		src/tsDemuxer.cpp src/debug.cpp src/elementaryStream.cpp src/bitstream.cpp
 		src/ES_AC3.cpp src/ES_MPEGAudio.cpp src/ES_Subtitle.cpp src/ES_AAC.cpp
 		src/ES_h264.cpp src/ES_MPEGVideo.cpp src/ES_Teletext.cpp
+		src/bitstream.h src/common.h src/debug.h src/elementaryStream.h src/mutex.h
+		src/tsPacket.h src/tsTable.h src/tsDemuxer.h
+		src/ES_AAC.h src/ES_AC3.h src/ES_h264.h src/ES_MPEGAudio.h src/ES_MPEGVideo.h
+		src/ES_Subtitle.h src/ES_Teletext.h
 		)
 
 	set_target_properties(tsDemuxer PROPERTIES
