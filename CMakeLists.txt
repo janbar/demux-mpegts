@@ -25,9 +25,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/.")
 
 ###############################################################################
 # add definitions
-#if(MSVC)
-#	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-#endif(MSVC)
+if(MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif(MSVC)
 
 ###############################################################################
 # add targets
