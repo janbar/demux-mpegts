@@ -240,7 +240,7 @@ void Demux::register_pmt()
       const char* codec_name = (*it)->GetStreamCodecName();
       if (!g_parseonly)
       {
-        std:map<uint16_t, FILE*>::iterator fit = m_outfiles.find((*it)->pid);
+        std::map<uint16_t, FILE*>::iterator fit = m_outfiles.find((*it)->pid);
         if (fit == m_outfiles.end())
         {
           char filename[512];
