@@ -245,10 +245,10 @@ int AVContext::configure_ts()
   size_t data_size = AV_CONTEXT_PACKETSIZE;
   uint64_t pos = av_pos;
   int fluts[][2] = {
-    FLUTS_NORMAL_TS_PACKETSIZE, 0,
-    FLUTS_M2TS_TS_PACKETSIZE, 0,
-    FLUTS_DVB_ASI_TS_PACKETSIZE, 0,
-    FLUTS_ATSC_TS_PACKETSIZE, 0
+    {FLUTS_NORMAL_TS_PACKETSIZE, 0},
+    {FLUTS_M2TS_TS_PACKETSIZE, 0},
+    {FLUTS_DVB_ASI_TS_PACKETSIZE, 0},
+    {FLUTS_ATSC_TS_PACKETSIZE, 0}
   };
   int nb = sizeof (fluts) / (2 * sizeof (int));
   int score = TS_CHECK_MIN_SCORE;
