@@ -13,7 +13,8 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+ *  MA 02110-1301 USA
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
@@ -32,6 +33,8 @@ enum STREAM_TYPE
   STREAM_TYPE_AUDIO_MPEG2,
   STREAM_TYPE_PRIVATE_DATA,
   STREAM_TYPE_AUDIO_AAC,
+  STREAM_TYPE_AUDIO_AAC_ADTS,
+  STREAM_TYPE_AUDIO_AAC_LATM,
   STREAM_TYPE_VIDEO_MPEG4,
   STREAM_TYPE_VIDEO_H264,
   STREAM_TYPE_VIDEO_VC1,
@@ -111,4 +114,3 @@ protected:
 };
 
 #endif /* ELEMENTARYSTREAM_H */
-

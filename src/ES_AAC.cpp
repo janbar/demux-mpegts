@@ -86,54 +86,68 @@ int ES_AAC::FindHeaders(uint8_t *buf, int buf_size)
 
   uint8_t *buf_ptr = buf;
 
-  // STREAM_TYPE_AUDIO_AACLATM
-  if ((buf_ptr[0] == 0x56 && (buf_ptr[1] & 0xE0) == 0xE0))
+  if (stream_type == STREAM_TYPE_AUDIO_AAC)
   {
-    // TODO
-    if (buf_size < 16)
-      return -1;
-
-    cBitstream bs(buf_ptr, 16 * 8);
-    bs.skipBits(11);
-    m_FrameSize = bs.readBits(13) + 3;
-    if (!ParseLATMAudioMuxElement(&bs))
-      return 0;
-
-    es_found_frame = true;
-    m_DTS = c_pts;
-    m_PTS = c_pts;
-    c_pts += 90000 * 1024 / m_SampleRate;
-    return -1;
+    if (buf_ptr[0] == 0xFF && (buf_ptr[1] & 0xF0) == 0xF0)
+      stream_type = STREAM_TYPE_AUDIO_AAC_ADTS;
+    else if (buf_ptr[0] == 0x56 && (buf_ptr[1] & 0xE0) == 0xE0)
+      stream_type = STREAM_TYPE_AUDIO_AAC_LATM;
   }
-  //STREAM_TYPE_AUDIO_AACADTS
-  else if(buf_ptr[0] == 0xFF && (buf_ptr[1] & 0xF0) == 0xF0)
+
+  // STREAM_TYPE_AUDIO_AAC_LATM
+  if (stream_type == STREAM_TYPE_AUDIO_AAC_LATM)
   {
-    // need at least 7 bytes for header
-    if (buf_size < 7)
+    if ((buf_ptr[0] == 0x56 && (buf_ptr[1] & 0xE0) == 0xE0))
+    {
+      // TODO
+      if (buf_size < 16)
+        return -1;
+
+      cBitstream bs(buf_ptr, 16 * 8);
+      bs.skipBits(11);
+      m_FrameSize = bs.readBits(13) + 3;
+      if (!ParseLATMAudioMuxElement(&bs))
+        return 0;
+
+      es_found_frame = true;
+      m_DTS = c_pts;
+      m_PTS = c_pts;
+      c_pts += 90000 * 1024 / m_SampleRate;
       return -1;
+    }
+  }
+  // STREAM_TYPE_AUDIO_AAC_ADTS
+  else if (stream_type == STREAM_TYPE_AUDIO_AAC_ADTS)
+  {
+    if(buf_ptr[0] == 0xFF && (buf_ptr[1] & 0xF0) == 0xF0)
+    {
+      // need at least 7 bytes for header
+      if (buf_size < 7)
+        return -1;
 
-    cBitstream bs(buf_ptr, 9 * 8);
-    bs.skipBits(15);
+      cBitstream bs(buf_ptr, 9 * 8);
+      bs.skipBits(15);
 
-    // check if CRC is present, means header is 9 byte long
-    int noCrc = bs.readBits(1);
-    if (!noCrc && (buf_size < 9))
+      // check if CRC is present, means header is 9 byte long
+      int noCrc = bs.readBits(1);
+      if (!noCrc && (buf_size < 9))
+        return -1;
+
+      bs.skipBits(2); // profile
+      int SampleRateIndex = bs.readBits(4);
+      bs.skipBits(1); // private
+      m_Channels = bs.readBits(3);
+      bs.skipBits(4);
+
+      m_FrameSize = bs.readBits(13);
+      m_SampleRate    = aac_sample_rates[SampleRateIndex & 0x0E];
+
+      es_found_frame = true;
+      m_DTS = c_pts;
+      m_PTS = c_pts;
+      c_pts += 90000 * 1024 / m_SampleRate;
       return -1;
-
-    bs.skipBits(2); // profile
-    int SampleRateIndex = bs.readBits(4);
-    bs.skipBits(1); // private
-    m_Channels = bs.readBits(3);
-    bs.skipBits(4);
-
-    m_FrameSize = bs.readBits(13);
-    m_SampleRate    = aac_sample_rates[SampleRateIndex & 0x0E];
-
-    es_found_frame = true;
-    m_DTS = c_pts;
-    m_PTS = c_pts;
-    c_pts += 90000 * 1024 / m_SampleRate;
-    return -1;
+    }
   }
   return 0;
 }
