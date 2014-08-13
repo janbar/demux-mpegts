@@ -243,14 +243,15 @@ uint64_t ElementaryStream::Rescale(uint64_t a, uint64_t b, uint64_t c)
   }
 }
 
-bool ElementaryStream::SetVideoInformation(int FpsScale, int FpsRate, int Height, int Width, float Aspect)
+bool ElementaryStream::SetVideoInformation(int FpsScale, int FpsRate, int Height, int Width, float Aspect, bool Interlaced)
 {
   bool ret = false;
   if ((stream_info.fps_scale != FpsScale) ||
       (stream_info.fps_rate != FpsRate) ||
       (stream_info.height != Height) ||
       (stream_info.width != Width) ||
-      (stream_info.aspect != Aspect))
+      (stream_info.aspect != Aspect) ||
+      (stream_info.interlaced != Interlaced))
     ret = true;
 
   stream_info.fps_scale       = FpsScale;
@@ -258,6 +259,7 @@ bool ElementaryStream::SetVideoInformation(int FpsScale, int FpsRate, int Height
   stream_info.height          = Height;
   stream_info.width           = Width;
   stream_info.aspect          = Aspect;
+  stream_info.interlaced      = Interlaced;
 
   has_stream_info = true;
   return ret;

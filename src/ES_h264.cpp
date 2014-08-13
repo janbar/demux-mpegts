@@ -57,6 +57,7 @@ ES_h264::ES_h264(uint16_t pes_pid)
   m_PixelAspect.num             = 0;
   m_DTS                         = 0;
   m_PTS                         = 0;
+  m_Interlaced                  = false;
   es_alloc_init                 = 240000;
   Reset();
 }
@@ -96,9 +97,9 @@ void ES_h264::Parse(STREAM_PKT* pkt)
       demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
       if (m_FpsScale == 0)
       {
-        m_FpsScale = Rescale(c_dts - p_dts, RESCALE_TIME_BASE, PTS_TIME_BASE);
+        m_FpsScale = static_cast<int>(Rescale(c_dts - p_dts, RESCALE_TIME_BASE, PTS_TIME_BASE));
       }
-      bool streamChange = SetVideoInformation(m_FpsScale, RESCALE_TIME_BASE, m_Height, m_Width, DAR);
+      bool streamChange = SetVideoInformation(m_FpsScale, RESCALE_TIME_BASE, m_Height, m_Width, static_cast<float>(DAR), m_Interlaced);
       pkt->pid            = pid;
       pkt->size           = es_consumed - frame_ptr;
       pkt->data           = &es_buf[frame_ptr];
@@ -310,8 +311,8 @@ bool ES_h264::Parse_SLH(uint8_t *buf, int len, h264_private::VCL_NAL &vcl)
   {
     vcl.field_pic_flag = bs.readBits1();
     // interlaced
-//    if (vcl.field_pic_flag)
-//      m_FPS *= 2;
+    if (vcl.field_pic_flag)
+      m_Interlaced = true;
   }
   if (vcl.field_pic_flag)
     vcl.bottom_field_flag = bs.readBits1();

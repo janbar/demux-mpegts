@@ -280,6 +280,7 @@ void Demux::show_stream_info(uint16_t pid)
   printf("  Identifier     : %.8x\n", stream_identifier(es->stream_info.composition_id, es->stream_info.ancillary_id));
   printf("  FPS scale      : %d\n", es->stream_info.fps_scale);
   printf("  FPS rate       : %d\n", es->stream_info.fps_rate);
+  printf("  Interlaced     : %s\n", (es->stream_info.interlaced ? "true" : "false"));
   printf("  Height         : %d\n", es->stream_info.height);
   printf("  Width          : %d\n", es->stream_info.width);
   printf("  Aspect         : %3.3f\n", es->stream_info.aspect);

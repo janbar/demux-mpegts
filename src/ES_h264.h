@@ -93,6 +93,7 @@ private:
   int             m_vbvSize;        /* Video buffer size (in bytes) */
   int64_t         m_DTS;
   int64_t         m_PTS;
+  bool            m_Interlaced;
 
   int Parse_H264(uint32_t startcode, int buf_ptr, bool &complete);
   bool Parse_PPS(uint8_t *buf, int len);
@@ -109,4 +110,3 @@ public:
 };
 
 #endif /* ES_H264_H */
-
