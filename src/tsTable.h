@@ -13,7 +13,8 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+ *  MA 02110-1301 USA
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
@@ -23,17 +24,18 @@
 
 #include "common.h"
 
-#define TABLE_BUFFER_SIZE       2048
+// PSI section size (EN 300 468)
+#define TABLE_BUFFER_SIZE       4096
 
 class TSTable
 {
 public:
-  unsigned char buf[TABLE_BUFFER_SIZE];
   uint8_t table_id;
   uint8_t version;
   uint16_t id;
   uint16_t len;
   uint16_t offset;
+  unsigned char buf[TABLE_BUFFER_SIZE];
 
   TSTable(void)
   : table_id(0xff)
@@ -42,7 +44,7 @@ public:
   , len(0)
   , offset(0)
   {
-    memset(buf, 0, sizeof(buf));
+    memset(buf, 0, TABLE_BUFFER_SIZE);
   }
 
   void Reset(void)

@@ -45,4 +45,3 @@ public:
 };
 
 #endif /* ES_AC3_H */
-

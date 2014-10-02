@@ -33,4 +33,3 @@ public:
 };
 
 #endif /* ES_TELETEXT_H */
-

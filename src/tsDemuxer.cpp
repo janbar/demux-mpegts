@@ -13,7 +13,8 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+ *  MA 02110-1301 USA
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
@@ -594,10 +595,7 @@ int AVContext::parse_ts_psi()
     len = (size_t)av_rb16(this->payload + 2);
     if ((len & 0x3000) != 0x3000)
       return AVCONTEXT_TS_ERROR;
-
     len &= 0x0fff;
-    if (len > TABLE_BUFFER_SIZE)
-      return AVCONTEXT_TS_ERROR;
 
     this->packet->packet_table.Reset();
 
@@ -750,31 +748,39 @@ int AVContext::parse_ts_psi()
           stream_info = parse_pes_descriptor(psi, len, &stream_type);
 
           ElementaryStream* es;
-          if (stream_type == STREAM_TYPE_VIDEO_MPEG1)
-            es = new ES_MPEG2Video(pes_pid);
-          else if (stream_type == STREAM_TYPE_VIDEO_MPEG2)
-            es = new ES_MPEG2Video(pes_pid);
-          else if (stream_type == STREAM_TYPE_AUDIO_MPEG1)
-            es = new ES_MPEG2Audio(pes_pid);
-          else if (stream_type == STREAM_TYPE_AUDIO_MPEG2)
-            es = new ES_MPEG2Audio(pes_pid);
-          else if (stream_type == STREAM_TYPE_VIDEO_H264)
-            es = new ES_h264(pes_pid);
-          else if (stream_type == STREAM_TYPE_AUDIO_AAC)
-            es = new ES_AAC(pes_pid);
-          else if (stream_type == STREAM_TYPE_AUDIO_AC3)
-            es = new ES_AC3(pes_pid);
-          else if (stream_type == STREAM_TYPE_AUDIO_EAC3)
-            es = new ES_AC3(pes_pid);
-          else if (stream_type == STREAM_TYPE_DVB_SUBTITLE)
-            es = new ES_Subtitle(pes_pid);
-          else if (stream_type == STREAM_TYPE_DVB_TELETEXT)
-            es = new ES_Teletext(pes_pid);
-          else
+          switch (stream_type)
           {
+          case STREAM_TYPE_VIDEO_MPEG1:
+          case STREAM_TYPE_VIDEO_MPEG2:
+            es = new ES_MPEG2Video(pes_pid);
+            break;
+          case STREAM_TYPE_AUDIO_MPEG1:
+          case STREAM_TYPE_AUDIO_MPEG2:
+            es = new ES_MPEG2Audio(pes_pid);
+            break;
+          case STREAM_TYPE_AUDIO_AAC:
+          case STREAM_TYPE_AUDIO_AAC_ADTS:
+          case STREAM_TYPE_AUDIO_AAC_LATM:
+            es = new ES_AAC(pes_pid);
+            break;
+          case STREAM_TYPE_VIDEO_H264:
+            es = new ES_h264(pes_pid);
+            break;
+          case STREAM_TYPE_AUDIO_AC3:
+          case STREAM_TYPE_AUDIO_EAC3:
+            es = new ES_AC3(pes_pid);
+            break;
+          case STREAM_TYPE_DVB_SUBTITLE:
+            es = new ES_Subtitle(pes_pid);
+            break;
+          case STREAM_TYPE_DVB_TELETEXT:
+            es = new ES_Teletext(pes_pid);
+            break;
+          default:
             // No parser: pass-through
             es = new ElementaryStream(pes_pid);
             es->has_stream_info = true;
+            break;
           }
 
           es->stream_type = stream_type;

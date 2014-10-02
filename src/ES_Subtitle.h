@@ -33,4 +33,3 @@ public:
 };
 
 #endif /* ES_SUBTITLE_H */
-

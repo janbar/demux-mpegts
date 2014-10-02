@@ -52,6 +52,6 @@ void ES_Teletext::Parse(STREAM_PKT* pkt)
   pkt->dts          = c_dts;
   pkt->pts          = c_pts;
   pkt->streamChange = false;
-  
+
   es_parsed = es_consumed = es_len;
 }

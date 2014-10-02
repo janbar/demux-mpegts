@@ -13,7 +13,8 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+ *  MA 02110-1301 USA
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
@@ -39,12 +40,12 @@ public:
   : pid(0xffff)
   , continuity(0xff)
   , packet_type(PACKET_TYPE_UNKNOWN)
-  , packet_table()
   , channel(0)
   , wait_unit_start(true)
   , has_stream_data(false)
   , streaming(false)
   , stream(NULL)
+  , packet_table()
   {
   }
 
@@ -66,13 +67,12 @@ public:
   uint16_t pid;
   uint8_t continuity;
   PACKET_TYPE packet_type;
-  TSTable packet_table;
   uint16_t channel;
   bool wait_unit_start;
   bool has_stream_data;
   bool streaming;
   ElementaryStream* stream;
+  TSTable packet_table;
 };
 
 #endif /* TSPACKET_H */
-
