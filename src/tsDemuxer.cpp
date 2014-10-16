@@ -936,14 +936,12 @@ int AVContext::parse_ts_pes()
 
     if (this->packet->packet_table.offset == 6)
     {
-      if (memcmp(this->packet->packet_table.buf, "\x00\x00\x01", 3))
+      if (memcmp(this->packet->packet_table.buf, "\x00\x00\x01", 3) == 0)
       {
-        this->packet->packet_table.Reset();
-       return AVCONTEXT_TS_ERROR;
+        uint8_t stream_id = av_rb8(this->packet->packet_table.buf + 3);
+        if (stream_id == 0xbd || (stream_id >= 0xc0 && stream_id <= 0xef))
+          this->packet->packet_table.len = 9;
       }
-      uint8_t stream_id = av_rb8(this->packet->packet_table.buf + 3);
-      if (stream_id == 0xbd || (stream_id >= 0xc0 && stream_id <= 0xef))
-        this->packet->packet_table.len = 9;
     }
     else if (this->packet->packet_table.offset == 9)
     {
