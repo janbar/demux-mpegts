@@ -56,7 +56,7 @@ Demux::Demux(FILE* file, uint16_t channel)
   }
   else
   {
-    printf(LOGTAG"alloc AV buffer failed\n");
+    printf(LOGTAG "alloc AV buffer failed\n");
   }
 }
 
@@ -72,7 +72,7 @@ Demux::~Demux()
   // Free AV buffer
   if (m_av_buf)
   {
-    printf(LOGTAG"free AV buffer: allocated size was %zu\n", m_av_buf_size);
+    printf(LOGTAG "free AV buffer: allocated size was %zu\n", m_av_buf_size);
     free(m_av_buf);
     m_av_buf = NULL;
   }
@@ -167,7 +167,7 @@ int Demux::Do()
     }
 
     if (ret < 0)
-      printf(LOGTAG"%s: error %d\n", __FUNCTION__, ret);
+      printf(LOGTAG "%s: error %d\n", __FUNCTION__, ret);
 
     if (ret == TSDemux::AVCONTEXT_TS_ERROR)
       m_AVContext->Shift();
@@ -175,7 +175,7 @@ int Demux::Do()
       m_AVContext->GoNext();
   }
 
-  printf(LOGTAG"%s: stopped with status %d\n", __FUNCTION__, ret);
+  printf(LOGTAG "%s: stopped with status %d\n", __FUNCTION__, ret);
   return ret;
 }
 
@@ -206,7 +206,7 @@ bool Demux::get_stream_data(TSDemux::STREAM_PKT* pkt)
         item.av_pos = m_AVContext->GetPosition();
         m_posmap.insert(std::make_pair(m_curTime, item));
         m_endTime = m_curTime;
-        printf(LOGTAG"time %09.3f : PTS=%"PRIu64" Position=%"PRIu64"\n", (double)(m_curTime) / PTS_TIME_BASE, item.av_pts, item.av_pos);
+        printf(LOGTAG "time %09.3f : PTS=%" PRIu64 " Position=%" PRIu64 "\n", (double)(m_curTime) / PTS_TIME_BASE, item.av_pts, item.av_pos);
       }
     }
     // Sync main DTS & PTS
@@ -244,12 +244,12 @@ void Demux::register_pmt()
         {
           char filename[512];
           sprintf(filename, "stream_%u_%.4x_%s", channel, (*it)->pid, codec_name);
-          printf(LOGTAG"stream channel %u PID %.4x codec %s to file '%s'\n", channel, (*it)->pid, codec_name, filename);
+          printf(LOGTAG "stream channel %u PID %.4x codec %s to file '%s'\n", channel, (*it)->pid, codec_name, filename);
           FILE* ofile = fopen(filename, "wb+");
           if (ofile)
             m_outfiles.insert(std::make_pair((*it)->pid, ofile));
           else
-            printf(LOGTAG"cannot open file '%s' for write\n", filename);
+            printf(LOGTAG "cannot open file '%s' for write\n", filename);
         }
       }
       m_AVContext->StartStreaming((*it)->pid);
@@ -273,7 +273,7 @@ void Demux::show_stream_info(uint16_t pid)
     return;
 
   uint16_t channel = m_AVContext->GetChannel(pid);
-  printf(LOGTAG"dump stream infos for channel %u PID %.4x\n", channel, es->pid);
+  printf(LOGTAG "dump stream infos for channel %u PID %.4x\n", channel, es->pid);
   printf("  Codec name     : %s\n", es->GetStreamCodecName());
   printf("  Language       : %s\n", es->stream_info.language);
   printf("  Identifier     : %.8x\n", stream_identifier(es->stream_info.composition_id, es->stream_info.ancillary_id));
