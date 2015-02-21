@@ -18,10 +18,10 @@
  *
  */
 
-#include <stdlib.h>
-
 #include "ES_AAC.h"
 #include "bitstream.h"
+
+using namespace TSDemux;
 
 static int aac_sample_rates[16] =
 {
@@ -103,7 +103,7 @@ int ES_AAC::FindHeaders(uint8_t *buf, int buf_size)
       if (buf_size < 16)
         return -1;
 
-      cBitstream bs(buf_ptr, 16 * 8);
+      CBitstream bs(buf_ptr, 16 * 8);
       bs.skipBits(11);
       m_FrameSize = bs.readBits(13) + 3;
       if (!ParseLATMAudioMuxElement(&bs))
@@ -125,7 +125,7 @@ int ES_AAC::FindHeaders(uint8_t *buf, int buf_size)
       if (buf_size < 7)
         return -1;
 
-      cBitstream bs(buf_ptr, 9 * 8);
+      CBitstream bs(buf_ptr, 9 * 8);
       bs.skipBits(15);
 
       // check if CRC is present, means header is 9 byte long
@@ -152,7 +152,7 @@ int ES_AAC::FindHeaders(uint8_t *buf, int buf_size)
   return 0;
 }
 
-bool ES_AAC::ParseLATMAudioMuxElement(cBitstream *bs)
+bool ES_AAC::ParseLATMAudioMuxElement(CBitstream *bs)
 {
   if (!bs->readBits1())
     ReadStreamMuxConfig(bs);
@@ -163,7 +163,7 @@ bool ES_AAC::ParseLATMAudioMuxElement(cBitstream *bs)
   return true;
 }
 
-void ES_AAC::ReadStreamMuxConfig(cBitstream *bs)
+void ES_AAC::ReadStreamMuxConfig(CBitstream *bs)
 {
   int AudioMuxVersion = bs->readBits(1);
   m_AudioMuxVersion_A = 0;
@@ -225,7 +225,7 @@ void ES_AAC::ReadStreamMuxConfig(cBitstream *bs)
   m_Configured = true;
 }
 
-void ES_AAC::ReadAudioSpecificConfig(cBitstream *bs)
+void ES_AAC::ReadAudioSpecificConfig(CBitstream *bs)
 {
   int aot = bs->readBits(5);
   if (aot == 31)

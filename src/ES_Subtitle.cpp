@@ -18,9 +18,9 @@
  *
  */
 
-#include <stdlib.h>
-
 #include "ES_Subtitle.h"
+
+using namespace TSDemux;
 
 ES_Subtitle::ES_Subtitle(uint16_t pid)
  : ElementaryStream(pid)

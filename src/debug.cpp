@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2013 Jean-Luc Barriere
+ *      Copyright (C) 2015 Jean-Luc Barriere
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,23 +21,23 @@
 
 #include "debug.h"
 
-extern "C" {
+#include <cstdlib>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <ctype.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
 
 typedef struct {
-	const char *name;
-	int        cur_level;
-	int        (*selector)(int plevel, int slevel);
-	void       (*msg_callback)(int level, char *msg);
-} demux_debug_ctx_t;
+   const char *name;
+   int        cur_level;
+   void       (*msg_callback)(int level, char *msg);
+} debug_ctx_t;
 
-#define DEMUX_DEBUG_CTX_INIT(n,l,s) { n, l, s, NULL }
-
-static demux_debug_ctx_t demux_debug_ctx = DEMUX_DEBUG_CTX_INIT("demuxer", DEMUX_DBG_NONE, NULL);
+static debug_ctx_t debug_ctx = {"TSDemux", DEMUX_DBG_NONE, NULL};
 
 /**
  * Set the debug level to be used for the subsystem
@@ -45,12 +45,11 @@ static demux_debug_ctx_t demux_debug_ctx = DEMUX_DEBUG_CTX_INIT("demuxer", DEMUX
  * \param level the debug level for the subsystem
  * \return an integer subsystem id used for future interaction
  */
-static inline void
-__demux_dbg_setlevel(demux_debug_ctx_t *ctx, int level)
+static inline void __dbg_setlevel(debug_ctx_t *ctx, int level)
 {
-	if (ctx != NULL) {
-		ctx->cur_level = level;
-	}
+   if (ctx != NULL) {
+       ctx->cur_level = level;
+   }
 }
 
 /**
@@ -60,53 +59,49 @@ __demux_dbg_setlevel(demux_debug_ctx_t *ctx, int level)
  * \param fmt a printf style format string for the message
  * \param ... arguments to the format
  */
-static inline void
-__demux_dbg(demux_debug_ctx_t *ctx, int level, const char *fmt, va_list ap)
+static inline void __dbg(debug_ctx_t *ctx, int level, const char *fmt, va_list ap)
 {
-	char msg[4096];
-	int len;
-	if (!ctx) {
-		return;
-	}
-	if ((ctx->selector && ctx->selector(level, ctx->cur_level)) ||
-	    (!ctx->selector && (level <= ctx->cur_level))) {
-		len = snprintf(msg, sizeof(msg), "(%s)", ctx->name);
-		vsnprintf(msg + len, sizeof(msg)-len, fmt, ap);
-		if (ctx->msg_callback) {
-			ctx->msg_callback(level, msg);
-		} else {
-			fwrite(msg, strlen(msg), 1, stdout);
-		}
-	}
+   char msg[4096];
+   int len;
+   if (ctx == NULL) {
+       return;
+   }
+   if (level <= ctx->cur_level) {
+       len = snprintf(msg, sizeof(msg), "(%s)", ctx->name);
+       vsnprintf(msg + len, sizeof(msg)-len, fmt, ap);
+       if (ctx->msg_callback) {
+           ctx->msg_callback(level, msg);
+       } else {
+           fwrite(msg, strlen(msg), 1, stderr);
+       }
+   }
 }
 
-void demux_dbg_level(int l)
+void TSDemux::DBGLevel(int l)
 {
-  __demux_dbg_setlevel(&demux_debug_ctx, l);
+  __dbg_setlevel(&debug_ctx, l);
 }
 
-void demux_dbg_all()
+void TSDemux::DBGAll()
 {
-  __demux_dbg_setlevel(&demux_debug_ctx, DEMUX_DBG_ALL);
+  __dbg_setlevel(&debug_ctx, DEMUX_DBG_ALL);
 }
 
-void demux_dbg_none()
+void TSDemux::DBGNone()
 {
-  __demux_dbg_setlevel(&demux_debug_ctx, DEMUX_DBG_NONE);
+  __dbg_setlevel(&debug_ctx, DEMUX_DBG_NONE);
 }
 
-void demux_dbg(int level, const char *fmt, ...)
+void TSDemux::DBG(int level, const char *fmt, ...)
 {
   va_list ap;
 
   va_start(ap, fmt);
-  __demux_dbg(&demux_debug_ctx, level, fmt, ap);
+  __dbg(&debug_ctx, level, fmt, ap);
   va_end(ap);
 }
 
-void demux_set_dbg_msgcallback(void (*msgcb)(int level, char *))
+void TSDemux::SetDBGMsgCallback(void (*msgcb)(int level, char *))
 {
-  demux_debug_ctx.msg_callback = msgcb;
-}
-
+  debug_ctx.msg_callback = msgcb;
 }

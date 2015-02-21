@@ -23,28 +23,31 @@
 
 #include <inttypes.h>
 
-class cBitstream
+namespace TSDemux
 {
-private:
-  uint8_t *m_data;
-  int      m_offset;
-  int      m_len;
-  bool     m_error;
+  class CBitstream
+  {
+  private:
+    uint8_t *m_data;
+    int      m_offset;
+    int      m_len;
+    bool     m_error;
 
-public:
-  cBitstream(uint8_t *data, int bits);
+  public:
+    CBitstream(uint8_t *data, int bits);
 
-  void         setBitstream(uint8_t *data, int bits);
-  void         skipBits(int num);
-  unsigned int readBits(int num);
-  unsigned int showBits(int num);
-  unsigned int readBits1() { return readBits(1); }
-  unsigned int readGolombUE(int maxbits = 32);
-  signed int   readGolombSE();
-  unsigned int remainingBits();
-  void         putBits(int val, int num);
-  int          length() { return m_len; }
-  bool         isError() { return m_error; }
-};
+    void         setBitstream(uint8_t *data, int bits);
+    void         skipBits(int num);
+    unsigned int readBits(int num);
+    unsigned int showBits(int num);
+    unsigned int readBits1() { return readBits(1); }
+    unsigned int readGolombUE(int maxbits = 32);
+    signed int   readGolombSE();
+    unsigned int remainingBits();
+    void         putBits(int val, int num);
+    int          length() { return m_len; }
+    bool         isError() { return m_error; }
+  };
+}
 
 #endif /* BITSTREAM_H */

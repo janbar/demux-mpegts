@@ -26,10 +26,9 @@
 #include <inttypes.h>
 
 #include "test_demux.h"
+#include "debug.h"
 
 #define LOGTAG  "[DEMUX] "
-
-using namespace std;
 
 int g_loglevel = DEMUX_DBG_INFO;
 int g_parseonly = 0;
@@ -47,13 +46,13 @@ Demux::Demux(FILE* file, uint16_t channel)
     m_av_rbe = m_av_buf;
     m_channel = channel;
 
-    demux_dbg_level(g_loglevel);
+    TSDemux::DBGLevel(g_loglevel);
 
     m_mainStreamPID = 0xffff;
     m_DTS = PTS_UNSET;
     m_PTS = PTS_UNSET;
     m_pinTime = m_curTime = m_endTime = 0;
-    m_AVContext = new AVContext(this, 0, m_channel);
+    m_AVContext = new TSDemux::AVContext(this, 0, m_channel);
   }
   else
   {
@@ -137,14 +136,14 @@ int Demux::Do()
     {
       ret = m_AVContext->TSResync();
     }
-    if (ret != AVCONTEXT_CONTINUE)
+    if (ret != TSDemux::AVCONTEXT_CONTINUE)
       break;
 
     ret = m_AVContext->ProcessTSPacket();
 
     if (m_AVContext->HasPIDStreamData())
     {
-      ElementaryStream::STREAM_PKT pkt;
+      TSDemux::STREAM_PKT pkt;
       while (get_stream_data(&pkt))
       {
         if (pkt.streamChange)
@@ -155,11 +154,11 @@ int Demux::Do()
     if (m_AVContext->HasPIDPayload())
     {
       ret = m_AVContext->ProcessTSPayload();
-      if (ret == AVCONTEXT_PROGRAM_CHANGE)
+      if (ret == TSDemux::AVCONTEXT_PROGRAM_CHANGE)
       {
         register_pmt();
-        std::vector<ElementaryStream*> streams = m_AVContext->GetStreams();
-        for (std::vector<ElementaryStream*>::const_iterator it = streams.begin(); it != streams.end(); it++)
+        std::vector<TSDemux::ElementaryStream*> streams = m_AVContext->GetStreams();
+        for (std::vector<TSDemux::ElementaryStream*>::const_iterator it = streams.begin(); it != streams.end(); it++)
         {
           if ((*it)->has_stream_info)
             show_stream_info((*it)->pid);
@@ -170,7 +169,7 @@ int Demux::Do()
     if (ret < 0)
       printf(LOGTAG"%s: error %d\n", __FUNCTION__, ret);
 
-    if (ret == AVCONTEXT_TS_ERROR)
+    if (ret == TSDemux::AVCONTEXT_TS_ERROR)
       m_AVContext->Shift();
     else
       m_AVContext->GoNext();
@@ -180,9 +179,9 @@ int Demux::Do()
   return ret;
 }
 
-bool Demux::get_stream_data(ElementaryStream::STREAM_PKT* pkt)
+bool Demux::get_stream_data(TSDemux::STREAM_PKT* pkt)
 {
-  ElementaryStream* es = m_AVContext->GetPIDStream();
+  TSDemux::ElementaryStream* es = m_AVContext->GetPIDStream();
   if (!es)
     return false;
 
@@ -230,11 +229,11 @@ void Demux::reset_posmap()
 
 void Demux::register_pmt()
 {
-  const std::vector<ElementaryStream*> es_streams = m_AVContext->GetStreams();
+  const std::vector<TSDemux::ElementaryStream*> es_streams = m_AVContext->GetStreams();
   if (!es_streams.empty())
   {
     m_mainStreamPID = es_streams[0]->pid;
-    for (std::vector<ElementaryStream*>::const_iterator it = es_streams.begin(); it != es_streams.end(); it++)
+    for (std::vector<TSDemux::ElementaryStream*>::const_iterator it = es_streams.begin(); it != es_streams.end(); it++)
     {
       uint16_t channel = m_AVContext->GetChannel((*it)->pid);
       const char* codec_name = (*it)->GetStreamCodecName();
@@ -269,7 +268,7 @@ static inline int stream_identifier(int composition_id, int ancillary_id)
 
 void Demux::show_stream_info(uint16_t pid)
 {
-  ElementaryStream* es = m_AVContext->GetStream(pid);
+  TSDemux::ElementaryStream* es = m_AVContext->GetStream(pid);
   if (!es)
     return;
 
@@ -292,7 +291,7 @@ void Demux::show_stream_info(uint16_t pid)
   printf("\n");
 }
 
-void Demux::write_stream_data(ElementaryStream::STREAM_PKT* pkt)
+void Demux::write_stream_data(TSDemux::STREAM_PKT* pkt)
 {
   if (!pkt)
     return;

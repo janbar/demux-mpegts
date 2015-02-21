@@ -23,13 +23,16 @@
 
 #include "elementaryStream.h"
 
-class ES_Subtitle : public ElementaryStream
+namespace TSDemux
 {
-public:
-  ES_Subtitle(uint16_t pid);
-  virtual ~ES_Subtitle();
+  class ES_Subtitle : public ElementaryStream
+  {
+  public:
+    ES_Subtitle(uint16_t pid);
+    virtual ~ES_Subtitle();
 
-  virtual void Parse(STREAM_PKT* pkt);
-};
+    virtual void Parse(STREAM_PKT* pkt);
+  };
+}
 
 #endif /* ES_SUBTITLE_H */

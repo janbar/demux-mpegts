@@ -18,13 +18,12 @@
  *
  */
 
-#include <stdlib.h>
-#include <algorithm>
-
 #include "ES_AC3.h"
 #include "bitstream.h"
 
-using namespace std;
+#include <algorithm>      // for max
+
+using namespace TSDemux;
 
 #define AC3_HEADER_SIZE 7
 
@@ -163,7 +162,7 @@ int ES_AC3::FindHeaders(uint8_t *buf, int buf_size)
 
   if ((buf_ptr[0] == 0x0b && buf_ptr[1] == 0x77))
   {
-    cBitstream bs(buf_ptr + 2, AC3_HEADER_SIZE * 8);
+    CBitstream bs(buf_ptr + 2, AC3_HEADER_SIZE * 8);
 
     // read ahead to bsid to distinguish between AC-3 and E-AC-3
     int bsid = bs.showBits(29) & 0x1F;
@@ -196,7 +195,7 @@ int ES_AC3::FindHeaders(uint8_t *buf, int buf_size)
       }
       int lfeon = bs.readBits(1);
 
-      int srShift   = max(bsid, 8) - 8;
+      int srShift   = std::max(bsid, 8) - 8;
       m_SampleRate  = AC3SampleRateTable[fscod] >> srShift;
       m_BitRate     = (AC3BitrateTable[frmsizecod>>1] * 1000) >> srShift;
       m_Channels    = AC3ChannelsTable[acmod] + lfeon;

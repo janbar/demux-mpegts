@@ -29,9 +29,7 @@
 #define AV_BUFFER_SIZE          131072
 #define POSMAP_PTS_INTERVAL     270000LL
 
-using namespace std;
-
-class Demux : public TSDemuxer
+class Demux : public TSDemux::TSDemuxer
 {
 public:
   Demux(FILE* file, uint16_t channel);
@@ -46,11 +44,11 @@ private:
   uint16_t m_channel;
   std::map<uint16_t, FILE*> m_outfiles;
 
-  bool get_stream_data(ElementaryStream::STREAM_PKT* pkt);
+  bool get_stream_data(TSDemux::STREAM_PKT* pkt);
   void reset_posmap();
   void register_pmt();
   void show_stream_info(uint16_t pid);
-  void write_stream_data(ElementaryStream::STREAM_PKT* pkt);
+  void write_stream_data(TSDemux::STREAM_PKT* pkt);
 
   // AV raw buffer
   size_t m_av_buf_size;         ///< size of av buffer
@@ -60,7 +58,7 @@ private:
   unsigned char* m_av_rbe;      ///< raw data end in buffer
 
   // Playback context
-  AVContext* m_AVContext;
+  TSDemux::AVContext* m_AVContext;
   uint16_t m_mainStreamPID;     ///< PID of main stream
   uint64_t m_DTS;               ///< absolute decode time of main stream
   uint64_t m_PTS;               ///< absolute presentation time of main stream

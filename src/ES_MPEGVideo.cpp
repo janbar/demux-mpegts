@@ -18,12 +18,11 @@
  *
  */
 
-#include <stdlib.h>
-
 #include "ES_MPEGVideo.h"
 #include "bitstream.h"
+#include "debug.h"
 
-using namespace std;
+using namespace TSDemux;
 
 #define MPEG_PICTURE_START      0x00000100
 #define MPEG_SEQUENCE_START     0x000001b3
@@ -218,7 +217,7 @@ int ES_MPEG2Video::Parse_MPEG2Video(uint32_t startcode, int buf_ptr, bool &compl
 
 bool ES_MPEG2Video::Parse_MPEG2Video_SeqStart(uint8_t *buf)
 {
-  cBitstream bs(buf, 8 * 8);
+  CBitstream bs(buf, 8 * 8);
 
   m_Width         = bs.readBits(12);
   m_Height        = bs.readBits(12);
@@ -241,7 +240,7 @@ bool ES_MPEG2Video::Parse_MPEG2Video_SeqStart(uint8_t *buf)
       m_Dar = 2.21f;
       break;
     default:
-      demux_dbg(DEMUX_DBG_ERROR, "invalid / forbidden DAR in sequence header !\n");
+      DBG(DEMUX_DBG_ERROR, "invalid / forbidden DAR in sequence header !\n");
       return false;
   }
 
@@ -257,7 +256,7 @@ bool ES_MPEG2Video::Parse_MPEG2Video_SeqStart(uint8_t *buf)
 
 bool ES_MPEG2Video::Parse_MPEG2Video_PicStart(uint8_t *buf)
 {
-  cBitstream bs(buf, 4 * 8);
+  CBitstream bs(buf, 4 * 8);
 
   m_TemporalReference = bs.readBits(10); /* temporal reference */
 

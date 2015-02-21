@@ -23,24 +23,27 @@
 
 #include "elementaryStream.h"
 
-class ES_MPEG2Audio : public ElementaryStream
+namespace TSDemux
 {
-private:
-  int         m_SampleRate;
-  int         m_Channels;
-  int         m_BitRate;
-  int         m_FrameSize;
+  class ES_MPEG2Audio : public ElementaryStream
+  {
+  private:
+    int         m_SampleRate;
+    int         m_Channels;
+    int         m_BitRate;
+    int         m_FrameSize;
 
-  int64_t     m_PTS;
-  int64_t     m_DTS;
+    int64_t     m_PTS;
+    int64_t     m_DTS;
 
-  int FindHeaders(uint8_t *buf, int buf_size);
+    int FindHeaders(uint8_t *buf, int buf_size);
 
-public:
-  ES_MPEG2Audio(uint16_t pid);
-  virtual ~ES_MPEG2Audio();
+  public:
+    ES_MPEG2Audio(uint16_t pid);
+    virtual ~ES_MPEG2Audio();
 
-  virtual void Parse(STREAM_PKT* pkt);
-};
+    virtual void Parse(STREAM_PKT* pkt);
+  };
+}
 
 #endif /* ES_MPEGAUDIO_H */

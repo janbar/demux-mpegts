@@ -23,13 +23,16 @@
 
 #include "elementaryStream.h"
 
-class ES_Teletext : public ElementaryStream
+namespace TSDemux
 {
-public:
-  ES_Teletext(uint16_t pid);
-  virtual ~ES_Teletext();
+  class ES_Teletext : public ElementaryStream
+  {
+  public:
+    ES_Teletext(uint16_t pid);
+    virtual ~ES_Teletext();
 
-  virtual void Parse(STREAM_PKT* pkt);
-};
+    virtual void Parse(STREAM_PKT* pkt);
+  };
+}
 
 #endif /* ES_TELETEXT_H */

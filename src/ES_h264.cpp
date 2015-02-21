@@ -18,10 +18,13 @@
  *
  */
 
-#include <stdlib.h>
-
 #include "ES_h264.h"
 #include "bitstream.h"
+#include "debug.h"
+
+#include <cstring>      // for memset memcpy
+
+using namespace TSDemux;
 
 static const int h264_lev2cpbsize[][2] =
 {
@@ -93,8 +96,8 @@ void ES_h264::Parse(STREAM_PKT* pkt)
     {
       double PAR = (double)m_PixelAspect.num/(double)m_PixelAspect.den;
       double DAR = (PAR * m_Width) / m_Height;
-      demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
-      demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
+      DBG(DEMUX_DBG_PARSE, "H.264 SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
+      DBG(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
       if (m_FpsScale == 0)
       {
         m_FpsScale = static_cast<int>(Rescale(c_dts - p_dts, RESCALE_TIME_BASE, PTS_TIME_BASE));
@@ -264,7 +267,7 @@ int ES_h264::Parse_H264(uint32_t startcode, int buf_ptr, bool &complete)
 
 bool ES_h264::Parse_PPS(uint8_t *buf, int len)
 {
-  cBitstream bs(buf, len*8);
+  CBitstream bs(buf, len*8);
 
   int pps_id = bs.readGolombUE();
   int sps_id = bs.readGolombUE();
@@ -276,7 +279,7 @@ bool ES_h264::Parse_PPS(uint8_t *buf, int len)
 
 bool ES_h264::Parse_SLH(uint8_t *buf, int len, h264_private::VCL_NAL &vcl)
 {
-  cBitstream bs(buf, len*8);
+  CBitstream bs(buf, len*8);
 
   bs.readGolombUE(); /* first_mb_in_slice */
   int slice_type = bs.readGolombUE();
@@ -340,7 +343,7 @@ bool ES_h264::Parse_SLH(uint8_t *buf, int len, h264_private::VCL_NAL &vcl)
 
 bool ES_h264::Parse_SPS(uint8_t *buf, int len)
 {
-  cBitstream bs(buf, len*8);
+  CBitstream bs(buf, len*8);
   unsigned int tmp, frame_mbs_only;
   int cbpsize = -1;
 
@@ -429,9 +432,9 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
   m_Height /* mbs */ = bs.readGolombUE() + 1;
   frame_mbs_only     = bs.readBits1();
   m_streamData.sps[seq_parameter_set_id].frame_mbs_only_flag = frame_mbs_only;
-  demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: pic_width:  %u mbs\n", (unsigned) m_Width);
-  demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: pic_height: %u mbs\n", (unsigned) m_Height);
-  demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: frame only flag: %d\n", frame_mbs_only);
+  DBG(DEMUX_DBG_PARSE, "H.264 SPS: pic_width:  %u mbs\n", (unsigned) m_Width);
+  DBG(DEMUX_DBG_PARSE, "H.264 SPS: pic_height: %u mbs\n", (unsigned) m_Height);
+  DBG(DEMUX_DBG_PARSE, "H.264 SPS: frame only flag: %d\n", frame_mbs_only);
 
   m_Width  *= 16;
   m_Height *= 16 * (2-frame_mbs_only);
@@ -439,7 +442,7 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
   if (!frame_mbs_only)
   {
     if (bs.readBits1())     /* mb_adaptive_frame_field_flag */
-      demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: MBAFF\n");
+      DBG(DEMUX_DBG_PARSE, "H.264 SPS: MBAFF\n");
   }
   bs.skipBits(1);           /* direct_8x8_inference_flag    */
   if (bs.readBits1())       /* frame_cropping_flag */
@@ -448,7 +451,7 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
     uint32_t crop_right  = bs.readGolombUE();
     uint32_t crop_top    = bs.readGolombUE();
     uint32_t crop_bottom = bs.readGolombUE();
-    demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: cropping %d %d %d %d\n", crop_left, crop_top, crop_right, crop_bottom);
+    DBG(DEMUX_DBG_PARSE, "H.264 SPS: cropping %d %d %d %d\n", crop_left, crop_top, crop_right, crop_bottom);
 
     m_Width -= 2*(crop_left + crop_right);
     if (frame_mbs_only)
@@ -464,13 +467,13 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
     if (bs.readBits1())  /* aspect_ratio_info_present */
     {
       uint32_t aspect_ratio_idc = bs.readBits(8);
-      demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: aspect_ratio_idc %d\n", aspect_ratio_idc);
+      DBG(DEMUX_DBG_PARSE, "H.264 SPS: aspect_ratio_idc %d\n", aspect_ratio_idc);
 
       if (aspect_ratio_idc == 255 /* Extended_SAR */)
       {
         m_PixelAspect.num = bs.readBits(16); /* sar_width */
         m_PixelAspect.den = bs.readBits(16); /* sar_height */
-        demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: -> sar %dx%d\n", m_PixelAspect.num, m_PixelAspect.den);
+        DBG(DEMUX_DBG_PARSE, "H.264 SPS: -> sar %dx%d\n", m_PixelAspect.num, m_PixelAspect.den);
       }
       else
       {
@@ -486,11 +489,11 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
         if (aspect_ratio_idc < sizeof(aspect_ratios)/sizeof(aspect_ratios[0]))
         {
           memcpy(&m_PixelAspect, &aspect_ratios[aspect_ratio_idc], sizeof(mpeg_rational_t));
-          demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: PAR %d / %d\n", m_PixelAspect.num, m_PixelAspect.den);
+          DBG(DEMUX_DBG_PARSE, "H.264 SPS: PAR %d / %d\n", m_PixelAspect.num, m_PixelAspect.den);
         }
         else
         {
-          demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: aspect_ratio_idc out of range !\n");
+          DBG(DEMUX_DBG_PARSE, "H.264 SPS: aspect_ratio_idc out of range !\n");
         }
       }
     }
@@ -526,7 +529,7 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
     }
   }
 
-  demux_dbg(DEMUX_DBG_PARSE, "H.264 SPS: -> video size %dx%d, aspect %d:%d\n", m_Width, m_Height, m_PixelAspect.num, m_PixelAspect.den);
+  DBG(DEMUX_DBG_PARSE, "H.264 SPS: -> video size %dx%d, aspect %d:%d\n", m_Width, m_Height, m_PixelAspect.num, m_PixelAspect.den);
   return true;
 }
 

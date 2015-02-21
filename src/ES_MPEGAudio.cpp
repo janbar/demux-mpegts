@@ -18,10 +18,10 @@
  *
  */
 
-#include <stdlib.h>
-
 #include "ES_MPEGAudio.h"
 #include "bitstream.h"
+
+using namespace TSDemux;
 
 const uint16_t FrequencyTable[3] = { 44100, 48000, 32000 };
 const uint16_t BitrateTable[2][3][15] =
@@ -95,7 +95,7 @@ int ES_MPEG2Audio::FindHeaders(uint8_t *buf, int buf_size)
 
   if ((buf_ptr[0] == 0xFF && (buf_ptr[1] & 0xE0) == 0xE0))
   {
-    cBitstream bs(buf_ptr, 4 * 8);
+    CBitstream bs(buf_ptr, 4 * 8);
     bs.skipBits(11); // syncword
 
     int audioVersion = bs.readBits(2);

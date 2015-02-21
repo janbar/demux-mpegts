@@ -18,11 +18,11 @@
  *
  */
 
-#include <stdio.h>
-#include <inttypes.h>
 #include "bitstream.h"
 
-cBitstream::cBitstream(uint8_t *data, int bits)
+using namespace TSDemux;
+
+CBitstream::CBitstream(uint8_t *data, int bits)
 {
   m_data   = data;
   m_offset = 0;
@@ -30,7 +30,7 @@ cBitstream::cBitstream(uint8_t *data, int bits)
   m_error  = false;
 }
 
-void cBitstream::setBitstream(uint8_t *data, int bits)
+void CBitstream::setBitstream(uint8_t *data, int bits)
 {
   m_data   = data;
   m_offset = 0;
@@ -38,12 +38,12 @@ void cBitstream::setBitstream(uint8_t *data, int bits)
   m_error  = false;
 }
 
-void cBitstream::skipBits(int num)
+void CBitstream::skipBits(int num)
 {
   m_offset += num;
 }
 
-unsigned int cBitstream::readBits(int num)
+unsigned int CBitstream::readBits(int num)
 {
   int r = 0;
 
@@ -65,7 +65,7 @@ unsigned int cBitstream::readBits(int num)
   return r;
 }
 
-unsigned int cBitstream::showBits(int num)
+unsigned int CBitstream::showBits(int num)
 {
   int r = 0;
   int offs = m_offset;
@@ -88,7 +88,7 @@ unsigned int cBitstream::showBits(int num)
   return r;
 }
 
-unsigned int cBitstream::readGolombUE(int maxbits)
+unsigned int CBitstream::readGolombUE(int maxbits)
 {
   int lzb = -1;
   int bits = 0;
@@ -103,7 +103,7 @@ unsigned int cBitstream::readGolombUE(int maxbits)
   return (1 << lzb) - 1 + readBits(lzb);
 }
 
-signed int cBitstream::readGolombSE()
+signed int CBitstream::readGolombSE()
 {
   int v, pos;
   v = readGolombUE();
@@ -116,13 +116,13 @@ signed int cBitstream::readGolombSE()
 }
 
 
-unsigned int cBitstream::remainingBits()
+unsigned int CBitstream::remainingBits()
 {
   return m_len - m_offset;
 }
 
 
-void cBitstream::putBits(int val, int num)
+void CBitstream::putBits(int val, int num)
 {
   while(num > 0) {
     if(m_offset >= m_len)

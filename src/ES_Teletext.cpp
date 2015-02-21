@@ -18,9 +18,9 @@
  *
  */
 
-#include <stdlib.h>
-
 #include "ES_Teletext.h"
+
+using namespace TSDemux;
 
 ES_Teletext::ES_Teletext(uint16_t pid)
  : ElementaryStream(pid)

@@ -20,7 +20,6 @@
  */
 
 #include "tsDemuxer.h"
-#include "elementaryStream.h"
 #include "ES_MPEGVideo.h"
 #include "ES_MPEGAudio.h"
 #include "ES_h264.h"
@@ -28,8 +27,11 @@
 #include "ES_AC3.h"
 #include "ES_Subtitle.h"
 #include "ES_Teletext.h"
+#include "debug.h"
 
-using namespace PLATFORM;
+#define MAX_RESYNC_SIZE         65536
+
+using namespace TSDemux;
 
 AVContext::AVContext(TSDemuxer* const demux, uint64_t pos, uint16_t channel)
   : av_pos(pos)
@@ -52,7 +54,7 @@ AVContext::AVContext(TSDemuxer* const demux, uint64_t pos, uint16_t channel)
 
 void AVContext::Reset(void)
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   pid = 0xffff;
   transport_error = false;
@@ -71,7 +73,7 @@ uint16_t AVContext::GetPID() const
 
 PACKET_TYPE AVContext::GetPIDType() const
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   if (packet)
     return packet->packet_type;
@@ -80,7 +82,7 @@ PACKET_TYPE AVContext::GetPIDType() const
 
 uint16_t AVContext::GetPIDChannel() const
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   if (packet)
     return packet->channel;
@@ -89,7 +91,7 @@ uint16_t AVContext::GetPIDChannel() const
 
 bool AVContext::HasPIDStreamData() const
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   // PES packets append frame buffer of elementary stream until next start of unit
   // On new unit start, flag is held
@@ -105,7 +107,7 @@ bool AVContext::HasPIDPayload() const
 
 ElementaryStream* AVContext::GetPIDStream()
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   if (packet && packet->packet_type == PACKET_TYPE_PES)
     return packet->stream;
@@ -114,7 +116,7 @@ ElementaryStream* AVContext::GetPIDStream()
 
 std::vector<ElementaryStream*> AVContext::GetStreams()
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   std::vector<ElementaryStream*> v;
   for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); it++)
@@ -125,7 +127,7 @@ std::vector<ElementaryStream*> AVContext::GetStreams()
 
 void AVContext::StartStreaming(uint16_t pid)
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   std::map<uint16_t, Packet>::iterator it = packets.find(pid);
   if (it != packets.end())
@@ -134,7 +136,7 @@ void AVContext::StartStreaming(uint16_t pid)
 
 void AVContext::StopStreaming(uint16_t pid)
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   std::map<uint16_t, Packet>::iterator it = packets.find(pid);
   if (it != packets.end())
@@ -143,7 +145,7 @@ void AVContext::StopStreaming(uint16_t pid)
 
 ElementaryStream* AVContext::GetStream(uint16_t pid) const
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   std::map<uint16_t, Packet>::const_iterator it = packets.find(pid);
   if (it != packets.end())
@@ -153,7 +155,7 @@ ElementaryStream* AVContext::GetStream(uint16_t pid) const
 
 uint16_t AVContext::GetChannel(uint16_t pid) const
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   std::map<uint16_t, Packet>::const_iterator it = packets.find(pid);
   if (it != packets.end())
@@ -163,7 +165,7 @@ uint16_t AVContext::GetChannel(uint16_t pid) const
 
 void AVContext::ResetPackets()
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); it++)
   {
@@ -290,7 +292,7 @@ int AVContext::configure_ts()
       // One and only one is eligible
       if (count == 1)
       {
-        demux_dbg(DEMUX_DBG_DEBUG, "%s: packet size is %d\n", __FUNCTION__, fluts[found][0]);
+        DBG(DEMUX_DBG_DEBUG, "%s: packet size is %d\n", __FUNCTION__, fluts[found][0]);
         av_pkt_size = fluts[found][0];
         av_pos = pos;
         return AVCONTEXT_CONTINUE;
@@ -307,7 +309,7 @@ int AVContext::configure_ts()
       pos++;
   }
 
-  demux_dbg(DEMUX_DBG_ERROR, "%s: invalid stream\n", __FUNCTION__);
+  DBG(DEMUX_DBG_ERROR, "%s: invalid stream\n", __FUNCTION__);
   return AVCONTEXT_TS_NOSYNC;
 }
 
@@ -387,7 +389,7 @@ uint64_t AVContext::GetPosition() const
  */
 int AVContext::ProcessTSPacket()
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   int ret = AVCONTEXT_CONTINUE;
   std::map<uint16_t, Packet>::iterator it;
@@ -474,7 +476,7 @@ int AVContext::ProcessTSPacket()
         if (!this->payload_unit_start)
         {
           it->second.Reset();
-          demux_dbg(DEMUX_DBG_WARN, "PID %.4x discontinuity detected: found %u, expected %u\n", this->pid, continuity_counter, expected_cc);
+          DBG(DEMUX_DBG_WARN, "PID %.4x discontinuity detected: found %u, expected %u\n", this->pid, continuity_counter, expected_cc);
           return AVCONTEXT_DISCONTINUITY;
         }
       }
@@ -506,7 +508,7 @@ int AVContext::ProcessTSPacket()
  */
 int AVContext::ProcessTSPayload()
 {
-  CLockObject lock(mutex);
+  PLATFORM::CLockObject lock(mutex);
 
   if (!this->packet)
     return AVCONTEXT_CONTINUE;
@@ -529,7 +531,7 @@ int AVContext::ProcessTSPayload()
 
 void AVContext::clear_pmt()
 {
-  demux_dbg(DEMUX_DBG_DEBUG, "%s\n", __FUNCTION__);
+  DBG(DEMUX_DBG_DEBUG, "%s\n", __FUNCTION__);
   std::vector<uint16_t> pid_list;
   for (std::map<uint16_t, Packet>::iterator it = this->packets.begin(); it != this->packets.end(); it++)
   {
@@ -545,7 +547,7 @@ void AVContext::clear_pmt()
 
 void AVContext::clear_pes(uint16_t channel)
 {
-  demux_dbg(DEMUX_DBG_DEBUG, "%s(%u)\n", __FUNCTION__, channel);
+  DBG(DEMUX_DBG_DEBUG, "%s(%u)\n", __FUNCTION__, channel);
   std::vector<uint16_t> pid_list;
   for (std::map<uint16_t, Packet>::iterator it = this->packets.begin(); it != this->packets.end(); it++)
   {
@@ -641,7 +643,7 @@ int AVContext::parse_ts_psi()
       uint8_t version = (av_rb8(psi + 2) & 0x3e) >> 1;
       if (id == this->packet->packet_table.id && version == this->packet->packet_table.version)
         return AVCONTEXT_CONTINUE;
-      demux_dbg(DEMUX_DBG_DEBUG, "%s: new PAT version %u\n", __FUNCTION__, version);
+      DBG(DEMUX_DBG_DEBUG, "%s: new PAT version %u\n", __FUNCTION__, version);
 
       // clear old associated pmt
       clear_pmt();
@@ -672,14 +674,14 @@ int AVContext::parse_ts_psi()
 
         pmt_pid &= 0x1fff;
 
-        demux_dbg(DEMUX_DBG_DEBUG, "%s: PAT version %u: new PMT %.4x channel %u\n", __FUNCTION__, version, pmt_pid, channel);
+        DBG(DEMUX_DBG_DEBUG, "%s: PAT version %u: new PMT %.4x channel %u\n", __FUNCTION__, version, pmt_pid, channel);
         if (this->channel == 0 || this->channel == channel)
         {
           Packet& pmt = this->packets[pmt_pid];
           pmt.pid = pmt_pid;
           pmt.packet_type = PACKET_TYPE_PSI;
           pmt.channel = channel;
-          demux_dbg(DEMUX_DBG_DEBUG, "%s: PAT version %u: register PMT %.4x channel %u\n", __FUNCTION__, version, pmt_pid, channel);
+          DBG(DEMUX_DBG_DEBUG, "%s: PAT version %u: register PMT %.4x channel %u\n", __FUNCTION__, version, pmt_pid, channel);
         }
       }
       // PAT is processed. New version is available
@@ -697,7 +699,7 @@ int AVContext::parse_ts_psi()
       uint8_t version = (av_rb8(psi + 2) & 0x3e) >> 1;
       if (id == this->packet->packet_table.id && version == this->packet->packet_table.version)
         return AVCONTEXT_CONTINUE;
-      demux_dbg(DEMUX_DBG_DEBUG, "%s: PMT(%.4x) version %u\n", __FUNCTION__, this->packet->pid, version);
+      DBG(DEMUX_DBG_DEBUG, "%s: PMT(%.4x) version %u\n", __FUNCTION__, this->packet->pid, version);
 
       // clear old pes
       clear_pes(this->packet->channel);
@@ -733,7 +735,7 @@ int AVContext::parse_ts_psi()
 
         // ignore unknown streams
         STREAM_TYPE stream_type = get_stream_type(pes_type);
-        demux_dbg(DEMUX_DBG_DEBUG, "%s: PMT(%.4x) version %u: new PES %.4x %s\n", __FUNCTION__,
+        DBG(DEMUX_DBG_DEBUG, "%s: PMT(%.4x) version %u: new PES %.4x %s\n", __FUNCTION__,
                   this->packet->pid, version, pes_pid, ElementaryStream::GetStreamCodecName(stream_type));
         if (stream_type != STREAM_TYPE_UNKNOWN)
         {
@@ -744,7 +746,7 @@ int AVContext::parse_ts_psi()
           // Disable streaming by default
           pes.streaming = false;
           // Get basic stream infos from PMT table
-          ElementaryStream::STREAM_INFO stream_info;
+          STREAM_INFO stream_info;
           stream_info = parse_pes_descriptor(psi, len, &stream_type);
 
           ElementaryStream* es;
@@ -786,7 +788,7 @@ int AVContext::parse_ts_psi()
           es->stream_type = stream_type;
           es->stream_info = stream_info;
           pes.stream = es;
-          demux_dbg(DEMUX_DBG_DEBUG, "%s: PMT(%.4x) version %u: register PES %.4x %s\n", __FUNCTION__,
+          DBG(DEMUX_DBG_DEBUG, "%s: PMT(%.4x) version %u: register PES %.4x %s\n", __FUNCTION__,
                   this->packet->pid, version, pes_pid, es->GetStreamCodecName());
         }
         psi += len;
@@ -808,18 +810,18 @@ int AVContext::parse_ts_psi()
   return AVCONTEXT_CONTINUE;
 }
 
-ElementaryStream::STREAM_INFO AVContext::parse_pes_descriptor(const unsigned char* p, size_t len, STREAM_TYPE* st)
+STREAM_INFO AVContext::parse_pes_descriptor(const unsigned char* p, size_t len, STREAM_TYPE* st)
 {
   const unsigned char* desc_end = p + len;
-  ElementaryStream::STREAM_INFO si;
-  memset(&si, 0, sizeof(ElementaryStream::STREAM_INFO));
+  STREAM_INFO si;
+  memset(&si, 0, sizeof(STREAM_INFO));
 
   while (p < desc_end)
   {
     uint8_t desc_tag = av_rb8(p);
     uint8_t desc_len = av_rb8(p + 1);
     p += 2;
-    demux_dbg(DEMUX_DBG_DEBUG, "%s: tag %.2x len %d\n", __FUNCTION__, desc_tag, desc_len);
+    DBG(DEMUX_DBG_DEBUG, "%s: tag %.2x len %d\n", __FUNCTION__, desc_tag, desc_len);
     switch (desc_tag)
     {
       case 0x02:

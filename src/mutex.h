@@ -18,12 +18,11 @@
  *
  */
 
-#ifndef MUTEX_H
-#define MUTEX_H
+#ifndef TS_MUTEX_H
+#define TS_MUTEX_H
 
 #if defined(_MSC_VER)
 #include <windows.h>
-
 #define pthread_mutex_init(a, b) InitializeCriticalSection(a)
 #define pthread_mutex_destroy(a) DeleteCriticalSection(a)
 #define pthread_mutex_lock(a) EnterCriticalSection(a)
@@ -31,25 +30,42 @@
 typedef CRITICAL_SECTION pthread_mutex_t;
 #else
 #include <pthread.h>
-
-inline pthread_mutexattr_t *GetRecursiveMutexAttribute(void)
+namespace TSDemux
 {
-  static pthread_mutexattr_t g_mutexAttr;
-  static bool bAttributeInitialised = false;
-  if (!bAttributeInitialised)
-  {
-    pthread_mutexattr_init(&g_mutexAttr);
-    pthread_mutexattr_settype(&g_mutexAttr, PTHREAD_MUTEX_RECURSIVE);
-    bAttributeInitialised = true;
-  }
-  return &g_mutexAttr;
-}
-
-#endif /* _MSC_VER */
-
 namespace PLATFORM
 {
-  class CMutex
+  inline pthread_mutexattr_t *GetRecursiveMutexAttribute(void)
+  {
+    static pthread_mutexattr_t g_mutexAttr;
+    static bool bAttributeInitialised = false;
+    if (!bAttributeInitialised)
+    {
+      pthread_mutexattr_init(&g_mutexAttr);
+      pthread_mutexattr_settype(&g_mutexAttr, PTHREAD_MUTEX_RECURSIVE);
+      bAttributeInitialised = true;
+    }
+    return &g_mutexAttr;
+  }
+}
+}
+#endif /* _MSC_VER */
+
+namespace TSDemux
+{
+namespace PLATFORM
+{
+  class PreventCopy
+  {
+  public:
+    inline PreventCopy(void) {}
+    inline ~PreventCopy(void) {}
+
+  private:
+    inline PreventCopy(const PreventCopy &c) { *this = c; }
+    inline PreventCopy &operator=(const PreventCopy &c){ *this = c; return *this; }
+  };
+
+  class CMutex : public PreventCopy
   {
   public:
     inline CMutex(void)
@@ -73,17 +89,10 @@ namespace PLATFORM
     }
 
   private:
-    CMutex(const CMutex&);
-    inline CMutex& operator=(const CMutex& c)
-    {
-      *this = c;
-      return *this;
-    }
-
     pthread_mutex_t m_mutex;
   };
 
-  class CLockObject
+  class CLockObject : public PreventCopy
   {
   public:
     inline CLockObject(CMutex& mutex) :
@@ -108,16 +117,10 @@ namespace PLATFORM
     }
 
   private:
-    CLockObject(const CLockObject&);
-    inline CLockObject& operator=(const CLockObject& c)
-    {
-      *this = c;
-      return *this;
-    }
-
     CMutex& m_mutex;
   };
 }
+}
 
-#endif /* MUTEX_H */
+#endif /* TS_MUTEX_H */
 
