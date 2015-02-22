@@ -287,7 +287,7 @@ void Demux::show_stream_info(uint16_t pid)
   printf("  Sample rate    : %d\n", es->stream_info.sample_rate);
   printf("  Block align    : %d\n", es->stream_info.block_align);
   printf("  Bit rate       : %d\n", es->stream_info.bit_rate);
-  printf("  Bit per sample : %d\n", es->stream_info.bits_Per_sample);
+  printf("  Bit per sample : %d\n", es->stream_info.bits_per_sample);
   printf("\n");
 }
 

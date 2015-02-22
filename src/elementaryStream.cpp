@@ -281,14 +281,14 @@ bool ElementaryStream::SetAudioInformation(int Channels, int SampleRate, int Bit
       (stream_info.sample_rate != SampleRate) ||
       (stream_info.block_align != BlockAlign) ||
       (stream_info.bit_rate != BitRate) ||
-      (stream_info.bits_Per_sample != BitsPerSample))
+      (stream_info.bits_per_sample != BitsPerSample))
     ret = true;
 
   stream_info.channels          = Channels;
   stream_info.sample_rate       = SampleRate;
   stream_info.block_align       = BlockAlign;
   stream_info.bit_rate          = BitRate;
-  stream_info.bits_Per_sample   = BitsPerSample;
+  stream_info.bits_per_sample   = BitsPerSample;
 
   has_stream_info = true;
   return ret;

@@ -70,7 +70,7 @@ namespace TSDemux
     int                   sample_rate;
     int                   block_align;
     int                   bit_rate;
-    int                   bits_Per_sample;
+    int                   bits_per_sample;
     bool                  interlaced;
   };
 
