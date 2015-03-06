@@ -185,7 +185,11 @@ void ES_AAC::ReadStreamMuxConfig(CBitstream *bs)
 
   // for each layer (which there is only on in DVB)
   if (!AudioMuxVersion)
+  {
     ReadAudioSpecificConfig(bs);
+    if (!m_SampleRate)
+      return;
+  }
   else
     return;
 
