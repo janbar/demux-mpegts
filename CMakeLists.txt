@@ -68,8 +68,14 @@ if(BUILD_SHARED_LIBS)
 endif(BUILD_SHARED_LIBS)
 
 add_executable(test src/test_demux.cpp src/test_demux.h)
-add_dependencies(test tsDemuxerStatic)
-target_link_libraries(test tsDemuxerStatic pthread)
+
+set(DEPLIBS tsDemuxerStatic)
+if (WIN32)
+  list(APPEND DEPLIBS ws2_32)
+else()
+  list(APPEND DEPLIBS m pthread)
+endif()
+target_link_libraries(test ${DEPLIBS})
 
 if(BUILD_SHARED_LIBS)
   install(TARGETS tsDemuxer tsDemuxerStatic
