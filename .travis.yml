@@ -8,10 +8,30 @@ compiler:
   - gcc
   - clang
 
+env:
+  global:
+    - COVERITY_SCAN_PROJECT_NAME="janbar/demux-mpegts"
+    - COVERITY_SCAN_NOTIFICATION_EMAIL="jlbarriere68@gmail.com"
+    - COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
+    - COVERITY_SCAN_BUILD_COMMAND="cmake --build ."
+    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
+    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
+    - secure: "t/p0pgF/ClETSmUGz+FUkShI6n+oNC/S8bzbd8ZcvMr1HD6LiaBuWfwZei9hLJ5BypEoQn3az7yIyQJBf8dVzkCvGNLzZ2vrp083E+GNF0hq/FA1+8n93Eskg23yBTeGcRuIDp7kO8AocFfGKqwsCnW5Nm40n1XREoaoVfbT1ADxWt0udr13AipwhPszBlEQwxVgO47FWHus/ZjS5PWRpUPFm38vxxRh9OcJRMrAdDEqivC50+cVIReytOYRzccew4fRdO3y6eZlOgkdFDcL/mqpyE8HwYRUQduKtGzwFYfWfVCag9d86k5dwkIu6mmzckFSLO+njMoImk2usoT2Az0fwonEV/eyuPeRjADdVUiDfmryt96xAtqf8lvPsNwLcoAKCC88KadtFda9vlM832Ve6RXjUkorgB2GvBIV5xeFg0RE2baIQUqsyDS/afwL//LQK8Gr5Jjf73Qi9oXaRSCT6xPQIZMMI+GmEnqnJJfSz76io2iyMkNz9bypwNHIEV0NrdeoBxj1eEju+DztcvDgXrlpp/mAwhCSMIY5pV+KEzg7HefvCgqogS47cWgdgBIzyH+Uf8KDH2sVQIaWFQztsBHNzemqj+Z3n6Z4zicndzttrboAI7feX7VxOrsqOnprQdXDePCAtd5Sphi0y6BG+9Dhga0JvB2+PIG4xU0="
+
 matrix:
   exclude:
      - os: osx
        compiler: gcc
+
+  include:
+     - os: linux
+       compiler: gcc
+       env: COVERITY_SCAN=1
+
+  allow_failures:
+     - env: COVERITY_SCAN=1
+
+  fast_finish: true
 
 before_script:
   - mkdir build && cd build
@@ -20,5 +40,6 @@ before_script:
 
 
 script:
-  - cmake --build .
+  - if [ "$COVERITY_SCAN" != 1 ]; then  cmake --build .; fi
+  - if [ "$COVERITY_SCAN" = 1 ]; then  eval "${COVERITY_SCAN_BUILD}"; fi
 
