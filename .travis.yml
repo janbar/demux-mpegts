@@ -1,0 +1,24 @@
+language: cpp
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
+matrix:
+  exclude:
+     - os: osx
+       compiler: gcc
+
+before_script:
+  - mkdir build && cd build
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cmake ..; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then cmake ..; fi
+
+
+script:
+  - cmake --build .
+
