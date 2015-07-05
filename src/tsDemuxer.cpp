@@ -29,6 +29,8 @@
 #include "ES_Teletext.h"
 #include "debug.h"
 
+#include <cassert>
+
 #define MAX_RESYNC_SIZE         65536
 
 using namespace TSDemux;
@@ -423,7 +425,13 @@ int AVContext::ProcessTSPacket()
   {
     size_t len = (size_t)av_rb8(this->av_buf + 4);
     if (len > (this->av_data_len - 5))
+    {
+#if defined(TSDEMUX_DEBUG)
+      assert(false);
+#else
       return AVCONTEXT_TS_ERROR;
+#endif
+    }
     n = len + 1;
     if (len > 0)
     {
@@ -588,7 +596,13 @@ int AVContext::parse_ts_psi()
     // pointer field present
     len = (size_t)av_rb8(this->payload);
     if (len > this->payload_len)
+    {
+#if defined(TSDEMUX_DEBUG)
+      assert(false);
+#else
       return AVCONTEXT_TS_ERROR;
+#endif
+    }
 
     // table ID
     uint8_t table_id = av_rb8(this->payload + 1);
@@ -596,7 +610,13 @@ int AVContext::parse_ts_psi()
     // table length
     len = (size_t)av_rb16(this->payload + 2);
     if ((len & 0x3000) != 0x3000)
+    {
+#if defined(TSDEMUX_DEBUG)
+      assert(false);
+#else
       return AVCONTEXT_TS_ERROR;
+#endif
+    }
     len &= 0x0fff;
 
     this->packet->packet_table.Reset();
@@ -614,11 +634,22 @@ int AVContext::parse_ts_psi()
   {
     // next part of PSI
     if (this->packet->packet_table.offset == 0)
+    {
+#if defined(TSDEMUX_DEBUG)
+      assert(false);
+#else
       return AVCONTEXT_TS_ERROR;
+#endif
+    }
 
     if ((this->payload_len + this->packet->packet_table.offset) > TABLE_BUFFER_SIZE)
+    {
+#if defined(TSDEMUX_DEBUG)
+      assert(false);
+#else
       return AVCONTEXT_TS_ERROR;
-
+#endif
+    }
     memcpy(this->packet->packet_table.buf + this->packet->packet_table.offset, this->payload, this->payload_len);
     this->packet->packet_table.offset += this->payload_len;
     // check for incomplete section
@@ -654,12 +685,24 @@ int AVContext::parse_ts_psi()
       end_psi -= 4; // CRC32
 
       if (psi >= end_psi)
+      {
+#if defined(TSDEMUX_DEBUG)
+        assert(false);
+#else
         return AVCONTEXT_TS_ERROR;
+#endif
+      }
 
       len = end_psi - psi;
 
       if (len % 4)
+      {
+#if defined(TSDEMUX_DEBUG)
+        assert(false);
+#else
         return AVCONTEXT_TS_ERROR;
+#endif
+      }
 
       size_t n = len / 4;
 
@@ -710,7 +753,13 @@ int AVContext::parse_ts_psi()
       end_psi -= 4; // CRC32
 
       if (psi >= end_psi)
+      {
+#if defined(TSDEMUX_DEBUG)
+        assert(false);
+#else
         return AVCONTEXT_TS_ERROR;
+#endif
+      }
 
       len = (size_t)(av_rb16(psi) & 0x0fff);
       psi += 2 + len;
@@ -718,7 +767,13 @@ int AVContext::parse_ts_psi()
       while (psi < end_psi)
       {
         if (end_psi - psi < 5)
-          return AVCONTEXT_TS_ERROR;
+        {
+#if defined(TSDEMUX_DEBUG)
+        assert(false);
+#else
+        return AVCONTEXT_TS_ERROR;
+#endif
+        }
 
         uint8_t pes_type = av_rb8(psi);
         uint16_t pes_pid = av_rb16(psi + 1);
@@ -795,7 +850,13 @@ int AVContext::parse_ts_psi()
       }
 
       if (psi != end_psi)
+      {
+#if defined(TSDEMUX_DEBUG)
+        assert(false);
+#else
         return AVCONTEXT_TS_ERROR;
+#endif
+      }
 
       // PMT is processed. New version is available
       this->packet->packet_table.id = id;

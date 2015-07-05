@@ -29,6 +29,10 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(MSVC)
 
+if(TSDEMUX_DEBUG)
+  add_definitions(-DTSDEMUX_DEBUG)
+endif(TSDEMUX_DEBUG)
+
 ###############################################################################
 # add targets
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Set to ON to build shared libraries")
