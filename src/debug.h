@@ -35,8 +35,8 @@ namespace TSDemux
   void DBGLevel(int l);
   void DBGAll(void);
   void DBGNone(void);
-  void DBG(int level, const char *fmt, ...);
-  void SetDBGMsgCallback(void (*msgcb)(int level,char *));
+  void DBG(int level, const char* fmt, ...);
+  void SetDBGMsgCallback(void (*msgcb)(int level, char*));
 }
 
 #endif /* TS_DEBUG_H */
