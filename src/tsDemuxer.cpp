@@ -121,7 +121,7 @@ std::vector<ElementaryStream*> AVContext::GetStreams()
   PLATFORM::CLockObject lock(mutex);
 
   std::vector<ElementaryStream*> v;
-  for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); it++)
+  for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); ++it)
     if (it->second.packet_type == PACKET_TYPE_PES && it->second.stream)
       v.push_back(it->second.stream);
   return v;
@@ -169,7 +169,7 @@ void AVContext::ResetPackets()
 {
   PLATFORM::CLockObject lock(mutex);
 
-  for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); it++)
+  for (std::map<uint16_t, Packet>::iterator it = packets.begin(); it != packets.end(); ++it)
   {
     it->second.Reset();
   }
@@ -541,7 +541,7 @@ void AVContext::clear_pmt()
 {
   DBG(DEMUX_DBG_DEBUG, "%s\n", __FUNCTION__);
   std::vector<uint16_t> pid_list;
-  for (std::map<uint16_t, Packet>::iterator it = this->packets.begin(); it != this->packets.end(); it++)
+  for (std::map<uint16_t, Packet>::iterator it = this->packets.begin(); it != this->packets.end(); ++it)
   {
     if (it->second.packet_type == PACKET_TYPE_PSI && it->second.packet_table.table_id == 0x02)
     {
@@ -549,7 +549,7 @@ void AVContext::clear_pmt()
       clear_pes(it->second.channel);
     }
   }
-  for (std::vector<uint16_t>::iterator it = pid_list.begin(); it != pid_list.end(); it ++)
+  for (std::vector<uint16_t>::iterator it = pid_list.begin(); it != pid_list.end(); ++it)
     this->packets.erase(*it);
 }
 
@@ -557,12 +557,12 @@ void AVContext::clear_pes(uint16_t channel)
 {
   DBG(DEMUX_DBG_DEBUG, "%s(%u)\n", __FUNCTION__, channel);
   std::vector<uint16_t> pid_list;
-  for (std::map<uint16_t, Packet>::iterator it = this->packets.begin(); it != this->packets.end(); it++)
+  for (std::map<uint16_t, Packet>::iterator it = this->packets.begin(); it != this->packets.end(); ++it)
   {
     if (it->second.packet_type == PACKET_TYPE_PES && it->second.channel == channel)
       pid_list.push_back(it->first);
   }
-  for (std::vector<uint16_t>::iterator it = pid_list.begin(); it != pid_list.end(); it ++)
+  for (std::vector<uint16_t>::iterator it = pid_list.begin(); it != pid_list.end(); ++it)
     this->packets.erase(*it);
 }
 
