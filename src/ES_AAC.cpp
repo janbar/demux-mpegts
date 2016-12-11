@@ -26,7 +26,8 @@ using namespace TSDemux;
 static int aac_sample_rates[16] =
 {
   96000, 88200, 64000, 48000, 44100, 32000,
-  24000, 22050, 16000, 12000, 11025, 8000, 7350
+  24000, 22050, 16000, 12000, 11025, 8000, 7350,
+  0, 0, 0
 };
 
 
@@ -68,7 +69,7 @@ void ES_AAC::Parse(STREAM_PKT* pkt)
     pkt->pid            = pid;
     pkt->data           = &es_buf[p];
     pkt->size           = m_FrameSize;
-    pkt->duration       = 1024 * 90000 / m_SampleRate;
+    pkt->duration       = 1024 * 90000 / (!m_SampleRate ? aac_sample_rates[4] : m_SampleRate);
     pkt->dts            = m_DTS;
     pkt->pts            = m_PTS;
     pkt->streamChange   = streamChange;
@@ -112,7 +113,7 @@ int ES_AAC::FindHeaders(uint8_t *buf, int buf_size)
       es_found_frame = true;
       m_DTS = c_pts;
       m_PTS = c_pts;
-      c_pts += 90000 * 1024 / m_SampleRate;
+      c_pts += 90000 * 1024 / (!m_SampleRate ? aac_sample_rates[4] : m_SampleRate);
       return -1;
     }
   }
@@ -140,12 +141,12 @@ int ES_AAC::FindHeaders(uint8_t *buf, int buf_size)
       bs.skipBits(4);
 
       m_FrameSize = bs.readBits(13);
-      m_SampleRate    = aac_sample_rates[SampleRateIndex & 0x0E];
+      m_SampleRate    = aac_sample_rates[SampleRateIndex & 0x0F];
 
       es_found_frame = true;
       m_DTS = c_pts;
       m_PTS = c_pts;
-      c_pts += 90000 * 1024 / m_SampleRate;
+      c_pts += 90000 * 1024 / (!m_SampleRate ? aac_sample_rates[4] : m_SampleRate);
       return -1;
     }
   }
@@ -185,11 +186,7 @@ void ES_AAC::ReadStreamMuxConfig(CBitstream *bs)
 
   // for each layer (which there is only on in DVB)
   if (!AudioMuxVersion)
-  {
     ReadAudioSpecificConfig(bs);
-    if (!m_SampleRate)
-      return;
-  }
   else
     return;
 
