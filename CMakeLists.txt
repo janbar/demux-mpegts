@@ -71,7 +71,7 @@ if(BUILD_SHARED_LIBS)
     SOVERSION "${GENERIC_LIB_SOVERSION}")
 endif(BUILD_SHARED_LIBS)
 
-add_executable(test src/test_demux.cpp src/test_demux.h)
+add_executable(demux src/test_demux.cpp src/test_demux.h)
 
 set(DEPLIBS tsDemuxerStatic)
 if (WIN32)
@@ -79,7 +79,7 @@ if (WIN32)
 else()
   list(APPEND DEPLIBS m pthread)
 endif()
-target_link_libraries(test ${DEPLIBS})
+target_link_libraries(demux ${DEPLIBS})
 
 if(BUILD_SHARED_LIBS)
   install(TARGETS tsDemuxer tsDemuxerStatic
