@@ -1,10 +1,3 @@
-/nbproject/
-/cmake_install.cmake
-/cmake_uninstall.cmake
-/compile_commands.json
-/test
-/tsDemuxer.pc
-/CMakeCache.txt
-/CMakeFiles/
-/Makefile
-/install_manifest.txt
+build/
+*.swp
+*~
