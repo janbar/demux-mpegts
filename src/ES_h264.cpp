@@ -98,22 +98,33 @@ void ES_h264::Parse(STREAM_PKT* pkt)
       double DAR = (PAR * m_Width) / m_Height;
       DBG(DEMUX_DBG_PARSE, "H.264 SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
       DBG(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
-      if (m_FpsScale == 0)
+
+      int duration;
+      if (c_dts != PTS_UNSET && p_dts != PTS_UNSET && c_dts > p_dts)
+        duration = c_dts - p_dts;
+      else
+        duration = static_cast<int>(Rescale(40000, PTS_TIME_BASE, RESCALE_TIME_BASE));
+
+      bool streamChange = false;
+      if (es_frame_valid)
       {
-        m_FpsScale = static_cast<int>(Rescale(c_dts - p_dts, RESCALE_TIME_BASE, PTS_TIME_BASE));
+        if (m_FpsScale == 0)
+          m_FpsScale = static_cast<int>(Rescale(duration, RESCALE_TIME_BASE, PTS_TIME_BASE));
+        streamChange = SetVideoInformation(m_FpsScale, RESCALE_TIME_BASE, m_Height, m_Width, static_cast<float>(DAR), m_Interlaced);
       }
-      bool streamChange = SetVideoInformation(m_FpsScale, RESCALE_TIME_BASE, m_Height, m_Width, static_cast<float>(DAR), m_Interlaced);
+
       pkt->pid            = pid;
       pkt->size           = es_consumed - frame_ptr;
       pkt->data           = &es_buf[frame_ptr];
       pkt->dts            = m_DTS;
       pkt->pts            = m_PTS;
-      pkt->duration       = c_dts - p_dts;
+      pkt->duration       = duration;
       pkt->streamChange   = streamChange;
     }
     m_StartCode = 0xffffffff;
     es_parsed = es_consumed;
     es_found_frame = false;
+    es_frame_valid = true;
   }
 }
 
@@ -227,7 +238,7 @@ int ES_h264::Parse_H264(uint32_t startcode, int buf_ptr, bool &complete)
   }
 
   case NAL_AUD:
-    if (es_found_frame && (p_dts != PTS_UNSET))
+    if (es_found_frame && (p_pts != PTS_UNSET))
     {
       complete = true;
       es_consumed = buf_ptr - 4;

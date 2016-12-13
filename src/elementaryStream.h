@@ -124,6 +124,7 @@ namespace TSDemux
     size_t es_pts_pointer;        ///< Position in buffer where current PTS becomes applicable
     size_t es_parsed;             ///< Parser: Last processed position in buffer
     bool   es_found_frame;        ///< Parser: Found frame
+    bool   es_frame_valid;
   };
 }
 

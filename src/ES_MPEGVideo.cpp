@@ -67,6 +67,7 @@ ES_MPEG2Video::ES_MPEG2Video(uint16_t pid)
   m_TemporalReference = 0;
   m_TrLastTime        = 0;
   m_PicNumber         = 0;
+  m_FpsScale          = 0;
   es_alloc_init       = 80000;
   Reset();
 }
@@ -100,8 +101,19 @@ void ES_MPEG2Video::Parse(STREAM_PKT *pkt)
   {
     if (!m_NeedSPS && !m_NeedIFrame)
     {
-      int fpsScale = static_cast<int>(Rescale(m_FrameDuration, RESCALE_TIME_BASE, PTS_TIME_BASE));
-      bool streamChange = SetVideoInformation(fpsScale, RESCALE_TIME_BASE, m_Height, m_Width, m_Dar, false);
+      bool streamChange = false;
+      if (es_frame_valid)
+      {
+        if (m_FpsScale == 0)
+        {
+          if (m_FrameDuration > 0)
+            m_FpsScale = static_cast<int>(Rescale(m_FrameDuration, RESCALE_TIME_BASE, PTS_TIME_BASE));
+          else
+            m_FpsScale = 40000;
+        }
+        streamChange = SetVideoInformation(m_FpsScale, RESCALE_TIME_BASE, m_Height, m_Width, m_Dar, false);
+      }
+
       pkt->pid          = pid;
       pkt->size         = es_consumed - frame_ptr;
       pkt->data         = &es_buf[frame_ptr];
@@ -113,6 +125,7 @@ void ES_MPEG2Video::Parse(STREAM_PKT *pkt)
     m_StartCode = 0xffffffff;
     es_parsed = es_consumed;
     es_found_frame = false;
+    es_frame_valid = true;
   }
 }
 
@@ -154,12 +167,12 @@ int ES_MPEG2Video::Parse_MPEG2Video(uint32_t startcode, int buf_ptr, bool &compl
       m_AuPrevDTS = m_AuDTS;
       if (buf_ptr - 4 >= (int)es_pts_pointer)
       {
-        m_AuDTS = c_dts;
+        m_AuDTS = c_dts != PTS_UNSET ? c_dts : c_pts;
         m_AuPTS = c_pts;
       }
       else
       {
-        m_AuDTS = p_dts;
+        m_AuDTS = p_dts != PTS_UNSET ? p_dts : p_pts;
         m_AuPTS = p_pts;
       }
     }

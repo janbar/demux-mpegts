@@ -45,6 +45,7 @@ ElementaryStream::ElementaryStream(uint16_t pes_pid)
   , es_pts_pointer(0)
   , es_parsed(0)
   , es_found_frame(false)
+  , es_frame_valid(false)
 {
   memset(&stream_info, 0, sizeof(STREAM_INFO));
 }
@@ -63,6 +64,7 @@ void ElementaryStream::Reset(void)
 {
   ClearBuffer();
   es_found_frame = false;
+  es_frame_valid = false;
 }
 
 void ElementaryStream::ClearBuffer()
