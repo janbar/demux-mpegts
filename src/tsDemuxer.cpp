@@ -23,6 +23,7 @@
 #include "ES_MPEGVideo.h"
 #include "ES_MPEGAudio.h"
 #include "ES_h264.h"
+#include "ES_hevc.h"
 #include "ES_AAC.h"
 #include "ES_AC3.h"
 #include "ES_Subtitle.h"
@@ -227,6 +228,8 @@ STREAM_TYPE AVContext::get_stream_type(uint8_t pes_type)
       return STREAM_TYPE_VIDEO_MPEG4;
     case 0x1b:
       return STREAM_TYPE_VIDEO_H264;
+    case 0x24:
+      return STREAM_TYPE_VIDEO_HEVC;
     case 0xea:
       return STREAM_TYPE_VIDEO_VC1;
     case 0x80:
@@ -822,6 +825,9 @@ int AVContext::parse_ts_psi()
             break;
           case STREAM_TYPE_VIDEO_H264:
             es = new ES_h264(pes_pid);
+            break;
+          case STREAM_TYPE_VIDEO_HEVC:
+            es = new ES_hevc(pes_pid);
             break;
           case STREAM_TYPE_AUDIO_AC3:
           case STREAM_TYPE_AUDIO_EAC3:
