@@ -47,6 +47,7 @@ add_library(tsDemuxerStatic STATIC
   src/ES_h264.cpp
   src/ES_MPEGVideo.cpp
   src/ES_Teletext.cpp
+  src/ES_hevc.cpp
   src/debug.cpp
   src/tsDemuxer.cpp)
 
@@ -63,6 +64,7 @@ if(BUILD_SHARED_LIBS)
     src/ES_h264.cpp
     src/ES_MPEGVideo.cpp
     src/ES_Teletext.cpp
+    src/ES_hevc.cpp
     src/debug.cpp
     src/tsDemuxer.cpp)
 
@@ -105,6 +107,7 @@ install(FILES
   src/ES_MPEGAudio.h
   src/ES_MPEGVideo.h
   src/ES_h264.h
+  src/ES_hevc.h
   src/ES_Subtitle.h
   src/ES_Teletext.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tsDemuxer)

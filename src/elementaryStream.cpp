@@ -149,6 +149,8 @@ const char* ElementaryStream::GetStreamCodecName(STREAM_TYPE stream_type)
       return "aac_latm";
     case STREAM_TYPE_VIDEO_H264:
       return "h264";
+    case STREAM_TYPE_VIDEO_HEVC:
+      return "hevc";
     case STREAM_TYPE_AUDIO_AC3:
       return "ac3";
     case STREAM_TYPE_AUDIO_EAC3:

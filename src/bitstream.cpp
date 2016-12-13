@@ -22,33 +22,60 @@
 
 using namespace TSDemux;
 
-CBitstream::CBitstream(uint8_t *data, int bits)
+void CBitstream::skipBits(unsigned int num)
 {
-  m_data   = data;
-  m_offset = 0;
-  m_len    = bits;
-  m_error  = false;
-}
+  if (m_doEP3)
+  {
+    register unsigned int tmp;
 
-void CBitstream::setBitstream(uint8_t *data, int bits)
-{
-  m_data   = data;
-  m_offset = 0;
-  m_len    = bits;
-  m_error  = false;
-}
+    while (num)
+    {
+      tmp = m_offset >> 3;
+      if (!(m_offset & 7) && (m_data[tmp--] == 3) && (m_data[tmp--] == 0) && (m_data[tmp] == 0))
+        m_offset += 8;   // skip EP3 byte
 
-void CBitstream::skipBits(int num)
-{
+      if (!(m_offset & 7) && (num >= 8)) // byte boundary, speed up things a little bit
+      {
+        m_offset += 8;
+        num -= 8;
+      }
+      else if ((tmp = 8-(m_offset & 7)) <= num) // jump to byte boundary
+      {
+        m_offset += tmp;
+        num -= tmp;
+      }
+      else
+      {
+        m_offset += num;
+         num = 0;
+      }
+
+      if (m_offset >= m_len)
+      {
+        m_error = true;
+        break;
+      }
+    }
+
+    return;
+  }
+
   m_offset += num;
 }
 
 unsigned int CBitstream::readBits(int num)
 {
-  int r = 0;
+  unsigned int r = 0;
 
   while(num > 0)
   {
+    if (m_doEP3)
+    {
+      size_t tmp = m_offset >> 3;
+      if (!(m_offset & 7) && (m_data[tmp--] == 3) && (m_data[tmp--] == 0) && (m_data[tmp] == 0))
+        m_offset += 8;   // skip EP3 byte
+    }
+
     if(m_offset >= m_len)
     {
       m_error = true;
@@ -67,8 +94,8 @@ unsigned int CBitstream::readBits(int num)
 
 unsigned int CBitstream::showBits(int num)
 {
-  int r = 0;
-  int offs = m_offset;
+  unsigned int r = 0;
+  size_t offs = m_offset;
 
   while(num > 0)
   {
@@ -113,31 +140,4 @@ signed int CBitstream::readGolombSE()
   pos = (v & 1);
   v = (v + 1) >> 1;
   return pos ? v : -v;
-}
-
-
-unsigned int CBitstream::remainingBits()
-{
-  return m_len - m_offset;
-}
-
-
-void CBitstream::putBits(int val, int num)
-{
-  while(num > 0) {
-    if(m_offset >= m_len)
-    {
-      m_error = true;
-      return;
-    }
-
-    num--;
-
-    if(val & (1 << num))
-      m_data[m_offset / 8] |= 1 << (7 - (m_offset & 7));
-    else
-      m_data[m_offset / 8] &= ~(1 << (7 - (m_offset & 7)));
-
-    m_offset++;
-  }
 }

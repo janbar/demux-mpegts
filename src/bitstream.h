@@ -22,30 +22,46 @@
 #define BITSTREAM_H
 
 #include <inttypes.h>
+#include <stddef.h>
 
 namespace TSDemux
 {
   class CBitstream
   {
   private:
-    uint8_t *m_data;
-    int      m_offset;
-    int      m_len;
-    bool     m_error;
+    uint8_t       *m_data;
+    size_t         m_offset;
+    const size_t   m_len;
+    bool           m_error;
+    const bool     m_doEP3;
 
   public:
-    CBitstream(uint8_t *data, int bits);
+    CBitstream(uint8_t *data, size_t bits)
+    : m_data(data)
+    , m_offset(0)
+    , m_len(bits)
+    , m_error(false)
+    , m_doEP3(false)
+    {}
 
-    void         setBitstream(uint8_t *data, int bits);
-    void         skipBits(int num);
+    // this is a bitstream that has embedded emulation_prevention_three_byte
+    // sequences that need to be removed as used in HECV.
+    // Data must start at byte 2
+    CBitstream(uint8_t *data, size_t bits, bool doEP3)
+    : m_data(data)
+    , m_offset(16) // skip header and use as sentinel for EP3 detection
+    , m_len(bits)
+    , m_error(false)
+    , m_doEP3(true)
+    {}
+
+    void         skipBits(unsigned int num);
     unsigned int readBits(int num);
     unsigned int showBits(int num);
     unsigned int readBits1() { return readBits(1); }
     unsigned int readGolombUE(int maxbits = 32);
     signed int   readGolombSE();
-    unsigned int remainingBits();
-    void         putBits(int val, int num);
-    int          length() { return m_len; }
+    size_t       length() { return m_len; }
     bool         isError() { return m_error; }
   };
 }
