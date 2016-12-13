@@ -71,12 +71,12 @@ ES_h264::~ES_h264()
 
 void ES_h264::Parse(STREAM_PKT* pkt)
 {
-  int frame_ptr = es_consumed;
-  int p = es_parsed;
+  size_t frame_ptr = es_consumed;
+  size_t p = es_parsed;
   uint32_t startcode = m_StartCode;
   bool frameComplete = false;
-  int l;
-  while ((l = es_len - p) > 3)
+
+  while ((p + 3) < es_len)
   {
     if ((startcode & 0xffffff00) == 0x00000100)
     {
@@ -99,7 +99,7 @@ void ES_h264::Parse(STREAM_PKT* pkt)
       DBG(DEMUX_DBG_PARSE, "H.264 SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
       DBG(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
 
-      int duration;
+      uint64_t duration;
       if (c_dts != PTS_UNSET && p_dts != PTS_UNSET && c_dts > p_dts)
         duration = c_dts - p_dts;
       else

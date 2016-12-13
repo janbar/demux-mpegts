@@ -51,8 +51,8 @@ void ES_hevc::Parse(STREAM_PKT* pkt)
   if (es_parsed + 10 > es_len) // 2*startcode + header + trail bits
     return;
 
-  int frame_ptr = es_consumed;
-  int p = es_parsed;
+  size_t frame_ptr = es_consumed;
+  size_t p = es_parsed;
   uint32_t startcode = m_StartCode;
   bool frameComplete = false;
 
@@ -80,7 +80,7 @@ void ES_hevc::Parse(STREAM_PKT* pkt)
       DBG(DEMUX_DBG_DEBUG, "HEVC SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
       DBG(DEMUX_DBG_DEBUG, "HEVC SPS: DAR %.2f\n", DAR);
 
-      int duration;
+      uint64_t duration;
       if (c_dts != PTS_UNSET && p_dts != PTS_UNSET && c_dts > p_dts)
         duration = c_dts - p_dts;
       else
@@ -137,8 +137,18 @@ void ES_hevc::Parse_HEVC(int buf_ptr, unsigned int NumBytesInNalUnit, bool &comp
 
   switch (hdr.nal_unit_type)
   {
-  case NAL_TRAIL_N ... NAL_RASL_R:
-  case NAL_BLA_W_LP ... NAL_CRA_NUT:
+  case NAL_TRAIL_N:
+  case NAL_TRAIL_R:
+  case NAL_TSA_N:
+  case NAL_TSA_R:
+  case NAL_STSA_N:
+  case NAL_STSA_R:
+  case NAL_RADL_N:
+  case NAL_RADL_R:
+  case NAL_RASL_N:
+  case NAL_RASL_R:
+  case NAL_BLA_W_LP:
+  case NAL_CRA_NUT:
   {
     if (m_NeedSPS || m_NeedPPS)
     {
