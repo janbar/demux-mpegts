@@ -175,6 +175,10 @@ int Demux::Do()
       m_AVContext->GoNext();
   }
 
+  printf(LOGTAG "## %d: no sync, %d: eof, %d: ts error ##\n",
+         TSDemux::AVCONTEXT_TS_NOSYNC,
+         TSDemux::AVCONTEXT_IO_ERROR,
+         TSDemux::AVCONTEXT_TS_ERROR);
   printf(LOGTAG "%s: stopped with status %d\n", __FUNCTION__, ret);
   return ret;
 }
@@ -308,9 +312,22 @@ void Demux::write_stream_data(TSDemux::STREAM_PKT* pkt)
   }
 }
 
+static void usage(const char* cmd)
+{
+  fprintf(stderr,
+        "Usage: %s [options] <file> | -\n\n"
+        "  Enter '-' instead a file name will process stream from standard input\n\n"
+        "  --debug            enable debug output\n"
+        "  --parseonly        only parse streams\n"
+        "  --channel <id>     process channel <id>. Default 0 for all channels\n"
+        "  -h, --help         print this help\n"
+        "\n", cmd
+        );
+}
+
 int main(int argc, char* argv[])
 {
-  char* filename = NULL;
+  const char* filename = NULL;
   uint16_t channel = 0;
   int i = 0;
   while (++i < argc)
@@ -330,25 +347,45 @@ int main(int argc, char* argv[])
       channel = atoi(argv[i]);
       fprintf(stderr, "channel=%d, ",channel);
     }
+    else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+    {
+      usage(argv[0]);
+      return 0;
+    }
     else
       filename = argv[i];
   }
 
   if (filename)
   {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = NULL;
+    if (strcmp(filename, "-") == 0)
+    {
+      file = stdin;
+      filename = "[stdin]";
+    }
+    else
+      file = fopen(filename, "rb");
+
     if (file)
     {
-      fprintf(stderr, "file='%s'\n", filename);
+      fprintf(stderr, "## Processing TS stream from %s ##\n", filename);
       Demux* demux = new Demux(file, channel);
       demux->Do();
       delete demux;
       fclose(file);
     }
     else
+    {
       fprintf(stderr,"Cannot open file '%s' for read\n", filename);
+      return -1;
+    }
   }
   else
-    fprintf(stderr, "file=Nil\n");
+  {
+    fprintf(stderr, "No file specified\n\n");
+    usage(argv[0]);
+    return -1;
+  }
   return 0;
 }
