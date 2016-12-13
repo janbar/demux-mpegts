@@ -26,7 +26,7 @@ void CBitstream::skipBits(unsigned int num)
 {
   if (m_doEP3)
   {
-    register unsigned int tmp;
+    unsigned int tmp;
 
     while (num)
     {
