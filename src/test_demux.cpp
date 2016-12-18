@@ -62,7 +62,7 @@ Demux::Demux(FILE* file, uint16_t channel)
 
 Demux::~Demux()
 {
-  for (std::map<uint16_t, FILE*>::iterator it = m_outfiles.begin(); it != m_outfiles.end(); it++)
+  for (std::map<uint16_t, FILE*>::iterator it = m_outfiles.begin(); it != m_outfiles.end(); ++it)
     if (it->second)
       fclose(it->second);
 
@@ -121,7 +121,7 @@ const unsigned char* Demux::ReadAV(uint64_t pos, size_t n)
       dataread += c;
       len -= c;
     }
-    if (dataread >= n || c <= 0)
+    if (dataread >= n || c == 0)
       break;
   }
   return dataread >= n ? m_av_rbs : NULL;
@@ -158,7 +158,7 @@ int Demux::Do()
       {
         register_pmt();
         std::vector<TSDemux::ElementaryStream*> streams = m_AVContext->GetStreams();
-        for (std::vector<TSDemux::ElementaryStream*>::const_iterator it = streams.begin(); it != streams.end(); it++)
+        for (std::vector<TSDemux::ElementaryStream*>::const_iterator it = streams.begin(); it != streams.end(); ++it)
         {
           if ((*it)->has_stream_info)
             show_stream_info((*it)->pid);
@@ -237,7 +237,7 @@ void Demux::register_pmt()
   if (!es_streams.empty())
   {
     m_mainStreamPID = es_streams[0]->pid;
-    for (std::vector<TSDemux::ElementaryStream*>::const_iterator it = es_streams.begin(); it != es_streams.end(); it++)
+    for (std::vector<TSDemux::ElementaryStream*>::const_iterator it = es_streams.begin(); it != es_streams.end(); ++it)
     {
       uint16_t channel = m_AVContext->GetChannel((*it)->pid);
       const char* codec_name = (*it)->GetStreamCodecName();

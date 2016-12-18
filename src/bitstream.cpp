@@ -26,11 +26,10 @@ void CBitstream::skipBits(unsigned int num)
 {
   if (m_doEP3)
   {
-    unsigned int tmp;
 
     while (num)
     {
-      tmp = m_offset >> 3;
+      unsigned int tmp = m_offset >> 3;
       if (!(m_offset & 7) && (m_data[tmp--] == 3) && (m_data[tmp--] == 0) && (m_data[tmp] == 0))
         m_offset += 8;   // skip EP3 byte
 

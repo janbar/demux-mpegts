@@ -249,7 +249,6 @@ STREAM_TYPE AVContext::get_stream_type(uint8_t pes_type)
 
 int AVContext::configure_ts()
 {
-  const unsigned char* data;
   size_t data_size = AV_CONTEXT_PACKETSIZE;
   uint64_t pos = av_pos;
   int fluts[][2] = {
@@ -263,7 +262,8 @@ int AVContext::configure_ts()
 
   for (int i = 0; i < MAX_RESYNC_SIZE; i++)
   {
-    if (!(data = m_demux->ReadAV(pos, data_size)))
+    const unsigned char* data = m_demux->ReadAV(pos, data_size);
+    if (!data)
       return AVCONTEXT_IO_ERROR;
     if (data[0] == 0x47)
     {
@@ -320,7 +320,6 @@ int AVContext::configure_ts()
 
 int AVContext::TSResync()
 {
-  const unsigned char* data;
   if (!is_configured)
   {
     int ret = configure_ts();
@@ -330,7 +329,7 @@ int AVContext::TSResync()
   }
   for (int i = 0; i < MAX_RESYNC_SIZE; i++)
   {
-    data = m_demux->ReadAV(av_pos, av_pkt_size);
+    const unsigned char* data = m_demux->ReadAV(av_pos, av_pkt_size);
     if (!data)
       return AVCONTEXT_IO_ERROR;
     if (data[0] == 0x47)
