@@ -97,7 +97,7 @@ namespace TSDemux
     int             m_Height;
     int             m_FpsScale;
     mpeg_rational_t m_PixelAspect;
-    hevc_private    m_streamData;
+    hevc_private_t  m_streamData;
     int64_t         m_DTS;
     int64_t         m_PTS;
     bool            m_Interlaced;

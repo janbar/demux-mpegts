@@ -36,7 +36,8 @@ ES_hevc::ES_hevc(uint16_t pes_pid)
   m_FpsScale          = 0;
   m_PixelAspect.den   = 1;
   m_PixelAspect.num   = 0;
-  memset(&m_streamData, 0, sizeof(m_streamData));
+  m_DTS               = PTS_UNSET;
+  m_PTS               = PTS_UNSET;
   m_Interlaced        = false;
   es_alloc_init       = 240000;
   Reset();
