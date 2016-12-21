@@ -11,17 +11,16 @@ Building:
 
 Testing:
 
-  run `test`
+  run `demux`
 
-Usage:
+Usage: ./demux [options] <file> | -
 
-  test [options] [ts filename]
-  
-Options:
+  Enter '-' instead a file name will process stream from standard input
 
-  --debug         Enable debug level  
-  --parseonly     Parse only ts file without output streams*  
-  --channel [no]  Parse stream only for specified channel no*  
+  --debug            enable debug output
+  --parseonly        only parse streams
+  --channel <id>     process channel <id>. Default 0 for all channels
+  -h, --help         print this help
 
 Output file names are formated like:
 
