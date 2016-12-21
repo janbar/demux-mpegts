@@ -136,20 +136,7 @@ void ES_hevc::Parse_HEVC(int buf_ptr, unsigned int NumBytesInNalUnit, bool &comp
   hdr.nuh_layer_id    = (header &  0x1f8) >> 3;
   hdr.nuh_temporal_id = (header &    0x7) - 1;
 
-  switch (hdr.nal_unit_type)
-  {
-  case NAL_TRAIL_N:
-  case NAL_TRAIL_R:
-  case NAL_TSA_N:
-  case NAL_TSA_R:
-  case NAL_STSA_N:
-  case NAL_STSA_R:
-  case NAL_RADL_N:
-  case NAL_RADL_R:
-  case NAL_RASL_N:
-  case NAL_RASL_R:
-  case NAL_BLA_W_LP:
-  case NAL_CRA_NUT:
+  if (hdr.nal_unit_type <= NAL_CRA_NUT)
   {
     if (m_NeedSPS || m_NeedPPS)
     {
@@ -184,69 +171,74 @@ void ES_hevc::Parse_HEVC(int buf_ptr, unsigned int NumBytesInNalUnit, bool &comp
 
     m_streamData.vcl_nal = vcl;
     es_found_frame = true;
-    break;
   }
-
-  case NAL_PFX_SEI_NUT:
-    if (es_found_frame)
-    {
-      complete = true;
-      es_consumed = buf_ptr - 3;
-    }
-    break;
-
-  case NAL_VPS_NUT:
-     break;
-
-  case NAL_SPS_NUT:
+  else
   {
-    if (es_found_frame)
+    switch (hdr.nal_unit_type)
     {
-      complete = true;
-      es_consumed = buf_ptr - 3;
-      return;
-    }
-    Parse_SPS(buf, NumBytesInNalUnit, hdr);
-    m_NeedSPS = false;
-    break;
-  }
+    case NAL_VPS_NUT:
+       break;
 
-  case NAL_PPS_NUT:
-  {
-    if (es_found_frame)
+    case NAL_SPS_NUT:
     {
-      complete = true;
-      es_consumed = buf_ptr - 3;
-      return;
+      if (es_found_frame)
+      {
+        complete = true;
+        es_consumed = buf_ptr - 3;
+        return;
+      }
+      Parse_SPS(buf, NumBytesInNalUnit, hdr);
+      m_NeedSPS = false;
+      break;
     }
-    Parse_PPS(buf, NumBytesInNalUnit);
-    m_NeedPPS = false;
-    break;
-  }
 
-  case NAL_AUD_NUT:
-    if (es_found_frame && (p_pts != PTS_UNSET))
+    case NAL_PPS_NUT:
     {
-      complete = true;
-      es_consumed = buf_ptr - 3;
+      if (es_found_frame)
+      {
+        complete = true;
+        es_consumed = buf_ptr - 3;
+        return;
+      }
+      Parse_PPS(buf, NumBytesInNalUnit);
+      m_NeedPPS = false;
+      break;
     }
-    break;
 
-  case NAL_EOS_NUT:
-    if (es_found_frame)
-    {
-      complete = true;
-      es_consumed = buf_ptr + 2;
+    case NAL_AUD_NUT:
+      if (es_found_frame && (p_pts != PTS_UNSET))
+      {
+        complete = true;
+        es_consumed = buf_ptr - 3;
+      }
+      break;
+
+    case NAL_EOS_NUT:
+      if (es_found_frame)
+      {
+        complete = true;
+        es_consumed = buf_ptr + 2;
+      }
+      break;
+
+    case NAL_FD_NUT:
+      break;
+
+    case NAL_PFX_SEI_NUT:
+      if (es_found_frame)
+      {
+        complete = true;
+        es_consumed = buf_ptr - 3;
+      }
+      break;
+
+    case NAL_SFX_SEI_NUT:
+       break;
+
+    default:
+      DBG(DEMUX_DBG_INFO, "HEVC fixme: nal unknown %i\n", hdr.nal_unit_type);
+      break;
     }
-    break;
-
-  case NAL_FD_NUT:
-  case NAL_SFX_SEI_NUT:
-     break;
-
-  default:
-    DBG(DEMUX_DBG_INFO, "HEVC fixme: nal unknown %i\n", hdr.nal_unit_type);
-    break;
   }
 }
 
