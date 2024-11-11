@@ -1,21 +1,9 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *  Copyright (C) 2013-2021 Jean-Luc Barrière
+ *  Copyright (C) 2005-2014 Team Kodi (https://kodi.tv)
  *
- *  This Program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  This Program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
- *  <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-2.0-or-later
+ *  See LICENSE.md for more information.
  */
 
 #include "ES_h264.h"
@@ -51,9 +39,7 @@ ES_h264::ES_h264(uint16_t pes_pid)
 {
   m_Height                      = 0;
   m_Width                       = 0;
-  m_FPS                         = 25;
   m_FpsScale                    = 0;
-  m_FrameDuration               = 0;
   m_vbvDelay                    = -1;
   m_vbvSize                     = 0;
   m_PixelAspect.den             = 1;
@@ -96,8 +82,8 @@ void ES_h264::Parse(STREAM_PKT* pkt)
     {
       double PAR = (double)m_PixelAspect.num/(double)m_PixelAspect.den;
       double DAR = (PAR * m_Width) / m_Height;
-      DBG(DEMUX_DBG_PARSE, "H.264 SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
-      DBG(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
+      //DBG(DEMUX_DBG_PARSE, "H.264 SPS: PAR %i:%i\n", m_PixelAspect.num, m_PixelAspect.den);
+      //DBG(DEMUX_DBG_PARSE, "H.264 SPS: DAR %.2f\n", DAR);
 
       uint64_t duration;
       if (c_dts != PTS_UNSET && p_dts != PTS_UNSET && c_dts > p_dts)
@@ -532,11 +518,11 @@ bool ES_h264::Parse_SPS(uint8_t *buf, int len)
 
     if (bs.readBits1()) // timing_info_present_flag
     {
-//      uint32_t num_units_in_tick = bs.readBits(32);
-//      uint32_t time_scale = bs.readBits(32);
-//      int fixed_frame_rate = bs.readBits1();
-//      if (num_units_in_tick > 0)
-//        m_FPS = time_scale / (num_units_in_tick * 2);
+      // uint32_t num_units_in_tick = bs.readBits(32);
+      // uint32_t time_scale = bs.readBits(32);
+      // int fixed_frame_rate = bs.readBits1();
+      // if (num_units_in_tick > 0)
+      //  m_FPS = time_scale / (num_units_in_tick * 2);
     }
   }
 
