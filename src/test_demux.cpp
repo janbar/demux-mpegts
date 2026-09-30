@@ -246,8 +246,8 @@ void Demux::register_pmt()
         std::map<uint16_t, FILE*>::iterator fit = m_outfiles.find((*it)->pid);
         if (fit == m_outfiles.end())
         {
-          char filename[512];
-          sprintf(filename, "stream_%u_%.4x_%s", channel, (*it)->pid, codec_name);
+          char filename[256];
+          snprintf(filename, 255, "stream_%u_%.4x_%s", channel, (*it)->pid, codec_name);
           printf(LOGTAG "stream channel %u PID %.4x codec %s to file '%s'\n", channel, (*it)->pid, codec_name, filename);
           FILE* ofile = fopen(filename, "wb+");
           if (ofile)
