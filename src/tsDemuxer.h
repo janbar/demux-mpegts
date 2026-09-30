@@ -97,6 +97,7 @@ namespace TSDemux
     static uint64_t decode_pts(const unsigned char* p);
     void clear_pmt();
     void clear_pes(uint16_t channel);
+    static uint32_t crc32_mpeg(uint32_t crc, const unsigned char* data, size_t len);
     int parse_ts_psi();
     static STREAM_INFO parse_pes_descriptor(const unsigned char* p, size_t len, STREAM_TYPE* st);
     int parse_ts_pes();
@@ -127,6 +128,9 @@ namespace TSDemux
     const unsigned char* payload;
     size_t payload_len;
     Packet* packet;
+    // Set by parse_ts_psi() when an assembled section turns out not to be a
+    // valid PSI section, used to drop provisional PID registrations.
+    bool invalid_psi_section;
   };
 }
 

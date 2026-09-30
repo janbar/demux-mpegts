@@ -50,6 +50,7 @@ AVContext::AVContext(TSDemuxer* const demux, uint64_t pos, uint16_t channel)
   , payload(NULL)
   , payload_len(0)
   , packet(NULL)
+  , invalid_psi_section(false)
 {
   m_demux = demux;
   memset(av_buf, 0, sizeof(av_buf));
@@ -67,6 +68,7 @@ void AVContext::Reset(void)
   payload = NULL;
   payload_len = 0;
   packet = NULL;
+  invalid_psi_section = false;
 }
 
 uint16_t AVContext::GetPID() const
@@ -450,18 +452,29 @@ int AVContext::ProcessTSPacket()
   it = this->packets.find(this->pid);
   if (it == this->packets.end())
   {
-    // Not registred PID
-    // We are waiting for unit start of PID 0 else next packet is required
-    if (this->pid == 0 && this->payload_unit_start)
+    // Only auto-register if this payload_unit_start actually contains a PSI table
+    if (this->payload_unit_start && this->payload && this->payload_len > 1)
     {
-      // Registering PID 0
-      Packet pid0;
-      pid0.pid = this->pid;
-      pid0.packet_type = PACKET_TYPE_PSI;
-      pid0.continuity = continuity_counter;
-      it = this->packets.insert(it, std::make_pair(this->pid, pid0));
+      const uint8_t pointerField = av_rb8(this->payload); // pointer_field is at payload[0];
+      if (static_cast<size_t>(pointerField) + 1 < this->payload_len)
+      {
+        const uint8_t tableId = av_rb8(this->payload + 1 + pointerField); // table_id is at payload + 1 + pointer_field
+        if (tableId == 0x00 || tableId == 0x02) // table_id 0x00 = PAT, 0x02 = PMT
+        {
+          Packet p;
+          p.pid = this->pid;
+          p.packet_type = PACKET_TYPE_PSI;
+          p.continuity = continuity_counter;
+          // The heuristic above cannot distinguish a PSI table from arbitrary
+          // payload, e.g. a PES packet starts with the start code prefix
+          // 00 00 01, which reads as pointer_field 0 and table_id 0x00 (PAT).
+          // Keep the registration provisional until a section validates.
+          p.auto_registered = true;
+          it = this->packets.insert(it, std::make_pair(this->pid, p));
+        }
+      }
     }
-    else
+    if (it == this->packets.end())
       return AVCONTEXT_CONTINUE;
   }
   else
@@ -527,7 +540,27 @@ int AVContext::ProcessTSPayload()
   switch (this->packet->packet_type)
   {
     case PACKET_TYPE_PSI:
+      this->invalid_psi_section = false;
       ret = parse_ts_psi();
+      // A provisionally registered PID that fails to deliver a valid section was
+      // never a PSI PID. Drop the registration, otherwise its payload keeps being
+      // parsed as PSI and discarded, and the elementary stream is lost for good
+      // (seen at HLS/TS segment boundaries on discontinuous live streams, where
+      // PES packets can reach the demuxer before the PAT/PMT of the new segment).
+      // A real PSI PID whose section was merely damaged in transit is registered
+      // again on the next section start.
+      if (this->packet && this->packet->auto_registered &&
+          (this->invalid_psi_section || ret == AVCONTEXT_TS_ERROR))
+      {
+        const uint16_t unregPid = this->packet->pid;
+        DBG(DEMUX_DBG_DEBUG, "%s: pid %.4x is not PSI, dropping provisional registration\n",
+            __FUNCTION__, unregPid);
+        this->packets.erase(unregPid);
+        this->packet = NULL;
+        // The failure was caused by our own registration, not by a stream error,
+        // so do not force the caller into a resync.
+        ret = AVCONTEXT_CONTINUE;
+      }
       break;
     case PACKET_TYPE_PES:
       ret = parse_ts_pes();
@@ -584,6 +617,21 @@ void AVContext::clear_pes(uint16_t channel)
  * AVCONTEXT_TS_ERROR
  *  Parsing error !
  */
+
+// MPEG-2 systems CRC-32 (poly 0x04C11DB7, MSB-first, init 0xFFFFFFFF, no final
+// XOR / no reflection). Computing it over a whole PSI section (table_id .. CRC)
+// yields 0 when the section is intact.
+uint32_t AVContext::crc32_mpeg(uint32_t crc, const unsigned char* data, size_t len)
+{
+  for (size_t i = 0; i < len; ++i)
+  {
+    crc ^= static_cast<uint32_t>(data[i]) << 24;
+    for (int b = 0; b < 8; ++b)
+      crc = (crc & 0x80000000) ? ((crc << 1) ^ 0x04c11db7) : (crc << 1);
+  }
+  return crc;
+}
+
 int AVContext::parse_ts_psi()
 {
   size_t len;
@@ -660,6 +708,41 @@ int AVContext::parse_ts_psi()
   }
 
   // now entire table is filled
+
+  // Validate the section CRC32 before trusting it. Every PSI section (PAT/PMT)
+  // is protected by a trailing CRC32; random TS payload that merely began with a
+  // PSI-like table_id will not satisfy it. Without this check such payload is
+  // misparsed as a PAT/PMT, spuriously (de)registers streams / forces a program
+  // change, corrupts the demux state and can crash on the next resync. This also
+  // lets us safely accept a PMT carried on a non-standard PID.
+  {
+    const uint16_t section_len = this->packet->packet_table.len;
+    if (section_len < 4 || section_len > TABLE_BUFFER_SIZE)
+      return AVCONTEXT_TS_ERROR;
+    // The 3-byte section header (table_id + syntax/length word) is not kept in
+    // buf; reconstruct it (PAT/PMT are long syntax sections, top bits '1011').
+    const unsigned char header[3] = {
+      this->packet->packet_table.table_id,
+      static_cast<unsigned char>(0xb0 | ((section_len >> 8) & 0x0f)),
+      static_cast<unsigned char>(section_len & 0xff)
+    };
+    uint32_t crc = 0xffffffff;
+    crc = crc32_mpeg(crc, header, 3);
+    crc = crc32_mpeg(crc, this->packet->packet_table.buf, section_len);
+    if (crc != 0)
+    {
+      DBG(DEMUX_DBG_DEBUG, "%s: bad PSI CRC on pid %.4x table_id %.2x; ignoring section\n",
+          __FUNCTION__, this->packet->pid, this->packet->packet_table.table_id);
+      this->packet->packet_table.Reset();
+      this->invalid_psi_section = true;
+      return AVCONTEXT_CONTINUE;
+    }
+  }
+
+  // The section is intact, so this PID really does carry PSI and the
+  // registration is no longer provisional.
+  this->packet->auto_registered = false;
+
   const unsigned char* psi = this->packet->packet_table.buf;
   const unsigned char* end_psi = psi + this->packet->packet_table.len;
 
@@ -1051,7 +1134,13 @@ int AVContext::parse_ts_pes()
         {
           uint64_t pts = decode_pts(this->packet->packet_table.buf + 9);
           uint64_t dts = decode_pts(this->packet->packet_table.buf + 14);
-          int64_t d = (pts - dts) & PTS_MASK;
+
+          uint64_t d = 0;
+          if (pts < dts)
+            dts = PTS_UNSET;
+          else
+            d = (pts - dts) & PTS_MASK;
+
           // more than two seconds of PTS/DTS delta, probably corrupt
           if(d > 180000)
           {

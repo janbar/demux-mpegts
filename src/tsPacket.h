@@ -45,6 +45,7 @@ namespace TSDemux
     , wait_unit_start(true)
     , has_stream_data(false)
     , streaming(false)
+    , auto_registered(false)
     , stream(NULL)
     , packet_table()
     {
@@ -72,6 +73,10 @@ namespace TSDemux
     bool wait_unit_start;
     bool has_stream_data;
     bool streaming;
+    // True when this PID was registered as PSI by the table_id heuristic instead
+    // of being announced by a PAT/PMT. Such a registration is provisional and is
+    // dropped again if the PID fails to deliver a valid section.
+    bool auto_registered;
     ElementaryStream* stream;
     TSTable packet_table;
   };
